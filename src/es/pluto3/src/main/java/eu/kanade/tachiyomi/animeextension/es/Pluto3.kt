@@ -333,6 +333,14 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     // sobrescribir el UA) y una variante reforzada para los reintentos.
     private val plutoBrowserUa = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
+    // network.cloudflareClient puede arrastrar un CookieJar con un CBS_COM de
+    // sesiones anteriores. Si Pluto ve la cookie en el request, no la reemite
+    // en la respuesta y no podemos leerla. Con un cliente sin cookies cada
+    // PtvStart devuelve una cookie fresca en x-external-set-cookie.
+    private val plutoFreshClient: OkHttpClient by lazy {
+        client.newBuilder().cookieJar(okhttp3.CookieJar.NO_COOKIES).build()
+    }
+
     private fun plutoGqlGet(
         operation: String,
         hash: String,
@@ -364,7 +372,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
                 .set("Cache-Control", "no-cache")
         }
         if (cookie != null) h.add("Cookie", cookie)
-        return client.newCall(Request.Builder().url(url).headers(h.build()).get().build()).execute()
+        return plutoFreshClient.newCall(Request.Builder().url(url).headers(h.build()).get().build()).execute()
     }
 
     /**
@@ -383,6 +391,8 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
                 extract(resp.headers.value(i))?.let { return it }
             }
         }
+        // Si el cliente ya envió CBS_COM en el request, reutilizamos ese valor.
+        resp.request.header("Cookie")?.let { extract(it) }?.let { return it }
         return extract(body)
     }
 
@@ -390,7 +400,8 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     private fun plutoCbsFromHome(): String? {
         var found: String? = null
         try {
-            client.newCall(Request.Builder().url("https://pluto.tv/").headers(headers).build())
+            val h = headers.newBuilder().set("Cache-Control", "no-cache").build()
+            plutoFreshClient.newCall(Request.Builder().url("https://pluto.tv/").headers(h).build())
                 .execute().use { r ->
                     for (value in r.headers("Set-Cookie")) {
                         Regex("""CBS_COM=([^;]+)""").find(value)?.groupValues?.get(1)?.let { found = it }
@@ -422,7 +433,9 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
                     } else {
                         val cbs = plutoCbsCookie(r, body) ?: plutoCbsFromHome()
                         if (cbs == null) {
-                            lastError = "Pluto PtvStart no devolvió CBS_COM"
+                            // Texto nuevo: si aparece, confirma que se ejecuta
+                            // esta versión y que agotamos todas las fuentes.
+                            lastError = "Pluto PtvStart sin CBS_COM tras reintento (JWT recibido)"
                         } else {
                             result = token to "CBS_COM=$cbs"
                         }
