@@ -215,7 +215,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
 
     // Capacidades detectadas por AEXT en el análisis del sitio. No sustituyen
     // a la verificación real: sólo ordenan los candidatos a probar.
-    private val siteStreamFormats = setOf()
+    private val siteStreamFormats = setOf<String>()
 
     // ============================== VIDEO LIST & EXTRACTORS ==============================
 
