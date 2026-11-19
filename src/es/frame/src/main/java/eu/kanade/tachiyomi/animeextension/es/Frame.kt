@@ -44,8 +44,66 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     // Rutas detectadas durante el análisis (vacías si no se encontraron).
     private val listingPath = "/catalog"
     private val latestPath = ""
-    private val searchPath = ""
-    private val searchParam = ""
+    private val searchPath = "/catalog"
+    private val searchParam = "name"
+    private val pageLanguage = "uz"
+
+    // Títulos reales declarados por el sitio con schema.org ItemList. Se usan
+    // sólo cuando el HTML no expone tarjetas (SPA); nunca se inventan títulos.
+    private data class LdRecord(
+        val title: String,
+        val alternateTitle: String?,
+        val language: String?,
+        val url: String,
+        val image: String?
+    )
+
+    private val jsonLdRecords = listOf(
+        LdRecord(title = "1+1 qo'shilish kuchi", alternateTitle = null, language = null, url = "https://frame.uz/cinema/intouchables", image = "https://st.frame.uz/files/contents/298/poster/b8c331bf-1141-4344-97da-9343eaf2fe9b_Uz.webp"),
+        LdRecord(title = "Layk Nastya", alternateTitle = null, language = null, url = "https://frame.uz/cinema/layk-nastya", image = "https://st.frame.uz/files/contents/56457/poster/8c861331-d087-49e1-9685-d70ca373947c_Uz.webp"),
+        LdRecord(title = "Imperator rafiqasi Ki", alternateTitle = null, language = null, url = "https://frame.uz/cinema/imperatrica-ki", image = "https://st.frame.uz/files/contents/7291/poster/e6d4c866-5a89-4fab-82d1-b562b3ffbfcc_Uz.webp"),
+        LdRecord(title = "Hammasiga Istanbul aybdor", alternateTitle = null, language = null, url = "https://frame.uz/cinema/vo-vsem-vinovat-stambul", image = "https://st.frame.uz/files/contents/45462/poster/3dc5649e-34fc-41d1-a2c9-68874b3d04fb_Uz.webp"),
+        LdRecord(title = "So`nggi zarba", alternateTitle = null, language = null, url = "https://frame.uz/cinema/so-nggi-zarba", image = "https://st.frame.uz/files/contents/56688/poster/d5776654-f7f4-482b-9fef-ecc2a6629a8a_Uz.webp"),
+        LdRecord(title = "Ogi‘r lyuks", alternateTitle = null, language = null, url = "https://frame.uz/cinema/tyazhyolyy-lyuks", image = "https://st.frame.uz/files/contents/57504/poster/8a622de6-1f14-4eae-a96b-ee0209bf7d9b_Uz.webp"),
+        LdRecord(title = "Fara Tashkentskiy", alternateTitle = null, language = null, url = "https://frame.uz/cinema/fara-taskentskij", image = "https://st.frame.uz/files/contents/5821/poster/04ee5bf5-e2e0-4c07-b3b0-755df83f225d_Uz.webp"),
+        LdRecord(title = "Farz", alternateTitle = null, language = null, url = "https://frame.uz/cinema/dolg", image = "https://st.frame.uz/files/contents/54827/poster/381e995d-a876-445d-b838-57e89f14cf25_Uz.webp"),
+        LdRecord(title = "Qora sigan", alternateTitle = null, language = null, url = "https://frame.uz/cinema/qora-sigan", image = "https://st.frame.uz/files/contents/53945/poster/4395ad31-e723-4dfb-a368-399b59ccd26e_Uz.webp"),
+        LdRecord(title = "Yigitning so‘zi. Asfaltdagi qon", alternateTitle = null, language = null, url = "https://frame.uz/cinema/slovo-pacana-krov-na-asfalte", image = "https://st.frame.uz/files/contents/2515/poster/4a16674b-6659-4b11-a0c8-ebc4db9f7aae_Uz.webp")
+    )
+
+    private fun recordToAnime(record: LdRecord): SAnime = SAnime.create().apply {
+        setUrlWithoutDomain(record.url)
+        title = preferredRecordTitle(record)
+        thumbnail_url = record.image
+    }
+
+    /** Idioma pedido > alternativa en inglés > nombre original del sitio. */
+    private fun preferredRecordTitle(record: LdRecord): String {
+        val alt = record.alternateTitle?.takeIf { it.isNotBlank() }
+        return when {
+            alt != null && (lang == "en" || record.language != lang) -> alt
+            else -> record.title
+        }
+    }
+
+    /** Prioriza atributos localizados reales; el texto visible manda si la página ya está en el idioma pedido. */
+    private fun pickTitle(element: Element, titleSelector: String): String {
+        val text = element.selectFirst(titleSelector)?.text()?.trim().orEmpty()
+            .ifBlank { element.selectFirst("h2, h3, .title, [class*=title]")?.text()?.trim().orEmpty() }
+        fun attr(name: String): String = element.attr(name).trim()
+            .ifBlank { element.selectFirst("[$name]")?.attr(name)?.trim().orEmpty() }
+        val attrs = if (lang == "en") {
+            listOf("data-title-en", "title")
+        } else {
+            listOf("data-title-es", "data-title-en", "title")
+        }
+        if (pageLanguage == lang && text.isNotBlank()) return text
+        for (name in attrs) {
+            val value = attr(name)
+            if (value.isNotBlank()) return value
+        }
+        return text.ifBlank { attr("alt") }.ifBlank { "Sin Título" }
+    }
 
     private fun pageUrl(path: String, page: Int): String {
         val clean = if (path.isEmpty()) "/" else if (path.startsWith("/")) path else "/$path"
@@ -88,10 +146,7 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         // solo busca descendientes, así que hay que aceptar el propio nodo.
         val link = if (element.tagName() == "a") element else element.selectFirst("a")
         setUrlWithoutDomain(link?.attr("href") ?: "")
-        title = element.selectFirst("a")?.text()?.trim()?.takeIf { it.isNotEmpty() }
-            ?: link?.attr("title")?.trim()?.takeIf { it.isNotEmpty() }
-            ?: element.selectFirst("img[alt]")?.attr("alt")?.trim()?.takeIf { it.isNotEmpty() }
-            ?: "Sin Título"
+        title = pickTitle(element, "a")
         thumbnail_url = element.selectFirst("img")
             ?.let { img ->
                 img.attr("abs:src")
@@ -103,8 +158,25 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
 
     override fun popularAnimeNextPageSelector(): String? = "".ifBlank { null }
 
-    override fun popularAnimeParse(response: Response): AnimesPage =
-        filterBlacklistedAnimes(super.popularAnimeParse(response))
+    override fun popularAnimeParse(response: Response): AnimesPage {
+        val page = filterBlacklistedAnimes(super.popularAnimeParse(response))
+        return withJsonLdFallback(page, "")
+    }
+
+    private fun withJsonLdFallback(page: AnimesPage, query: String): AnimesPage {
+        var animes = page.animes
+        if (query.isNotBlank()) {
+            val q = query.trim().lowercase()
+            animes = animes.filter { it.title.lowercase().contains(q) }
+        }
+        if (animes.isEmpty() && jsonLdRecords.isNotEmpty()) {
+            animes = jsonLdRecords
+                .map(::recordToAnime)
+                .filter { anime -> query.isBlank() || anime.title.lowercase().contains(query.trim().lowercase()) }
+            return AnimesPage(animes, false)
+        }
+        return AnimesPage(animes, page.hasNextPage)
+    }
 
     // ============================== LATEST UPDATES ==============================
     override fun latestUpdatesRequest(page: Int): Request = GET(pageUrl(latestPath, page), headers)
@@ -115,8 +187,10 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
 
     override fun latestUpdatesNextPageSelector(): String? = "".ifBlank { null }
 
-    override fun latestUpdatesParse(response: Response): AnimesPage =
-        filterBlacklistedAnimes(super.latestUpdatesParse(response))
+    override fun latestUpdatesParse(response: Response): AnimesPage {
+        val page = filterBlacklistedAnimes(super.latestUpdatesParse(response))
+        return withJsonLdFallback(page, "")
+    }
 
     // ============================== SEARCH ANIME ==============================
     override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList): Request {
@@ -128,8 +202,24 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         } else {
             pageUrl(listingPath, page)
         }
-        return GET(url, headers)
+        lastSearchQuery = finalQuery
+        val urlBuilder = Uri.parse(url).buildUpon()
+        for (f in filters) {
+            when (f) {
+                is FrameFilters.ParamSelectFilter -> if (f.state > 0) {
+                    urlBuilder.appendQueryParameter(f.param, f.options[f.state])
+                }
+                is FrameFilters.ParamCheckFilter -> if (f.state) {
+                    urlBuilder.appendQueryParameter(f.param, f.value)
+                }
+                else -> Unit
+            }
+        }
+        val finalUrl = urlBuilder.build().toString()
+        return GET(finalUrl, headers)
     }
+
+    private var lastSearchQuery = ""
 
     override fun searchAnimeSelector(): String = "div[class*=card], div[class*=item], div[class*=poster], div[class*=cover]"
 
@@ -137,8 +227,12 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
 
     override fun searchAnimeNextPageSelector(): String? = "".ifBlank { null }
 
-    override fun searchAnimeParse(response: Response): AnimesPage =
-        filterBlacklistedAnimes(super.searchAnimeParse(response))
+    override fun searchAnimeParse(response: Response): AnimesPage {
+        val page = filterBlacklistedAnimes(super.searchAnimeParse(response))
+        // Sin endpoint de búsqueda, el sitio devuelve el catálogo sin filtrar.
+        // Filtrar localmente es honesto: no fingimos que el servidor buscó.
+        return withJsonLdFallback(page, lastSearchQuery)
+    }
 
     private fun filterBlacklistedAnimes(page: AnimesPage): AnimesPage {
         val rawBlacklist = preferences.getString("genre_blacklist_text", "") ?: ""
