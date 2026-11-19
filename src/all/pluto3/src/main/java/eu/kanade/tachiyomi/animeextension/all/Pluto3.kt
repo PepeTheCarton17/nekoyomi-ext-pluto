@@ -55,7 +55,8 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         val alternateTitle: String?,
         val language: String?,
         val url: String,
-        val image: String?
+        val image: String?,
+        val genre: String? = null
     )
 
     private val jsonLdRecords = emptyList<LdRecord>()
@@ -64,6 +65,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         setUrlWithoutDomain(record.url)
         title = preferredRecordTitle(record)
         thumbnail_url = record.image
+        genre = record.genre
     }
 
     /** Idioma pedido > alternativa en inglés > nombre original del sitio. */
@@ -192,22 +194,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             pageUrl(listingPath, page)
         }
         lastSearchQuery = finalQuery
-        val urlBuilder = Uri.parse(url).buildUpon()
-        for (f in filters) {
-            when (f) {
-                is Pluto3Filters.ParamSelectFilter -> if (f.state > 0) {
-                    urlBuilder.appendQueryParameter(f.param, f.vals[f.state - 1].second)
-                }
-                is Pluto3Filters.ParamCheckFilter -> if (f.state) {
-                    urlBuilder.appendQueryParameter(f.param, f.value)
-                }
-                is Pluto3Filters.ParamTextFilter -> if (f.state.isNotBlank()) {
-                    urlBuilder.appendQueryParameter(f.param, f.state)
-                }
-                else -> Unit
-            }
-        }
-        val finalUrl = urlBuilder.build().toString()
+        val finalUrl = url
         return GET(finalUrl, headers)
     }
 
@@ -232,13 +219,24 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             .split(",")
             .map { it.trim().lowercase() }
             .filter { it.isNotEmpty() }
+        // Valores elegidos en el filtro de exclusión: ids/nombres reales de las
+        // listas verificadas de la API del sitio, no palabras escritas a mano.
+        val excludedApi = (preferences.getStringSet("excluded_api_values", mutableSetOf<String>()) ?: emptySet())
+            .map { it.lowercase() }
+            .filter { it.isNotBlank() }
 
-        if (blacklistWords.isEmpty()) return page
+        if (blacklistWords.isEmpty() && excludedApi.isEmpty()) return page
 
         val filtered = page.animes.filterNot { anime ->
             val genreLower = anime.genre?.lowercase() ?: ""
+            val genreWords = genreLower.split(",", ";", "|")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+            val excludedHit = excludedApi.any { word ->
+                genreWords.any { genre -> genre == word || genre.contains(word) }
+            }
             val titleLower = anime.title.lowercase()
-            blacklistWords.any { word ->
+            excludedHit || blacklistWords.any { word ->
                 (genreLower.isNotEmpty() && genreLower.contains(word)) || titleLower.contains(word)
             }
         }
@@ -297,7 +295,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     // Capacidades detectadas por AEXT en el análisis del sitio. No sustituyen
     // a la verificación real: sólo ordenan los candidatos a probar.
     private val siteStreamFormats = setOf<String>()
-    private val siteAppVersion = "10.12.1119"
+    private val siteAppVersion = "10.12.1121"
     private val sitePlayerCases = setOf<String>("cipher-signature", "session-bootstrap", "graphql-persisted", "drm-widevine")
     private val siteRegion = "MX"
     private val siteLocale = "es-419"
