@@ -297,7 +297,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     // Capacidades detectadas por AEXT en el análisis del sitio. No sustituyen
     // a la verificación real: sólo ordenan los candidatos a probar.
     private val siteStreamFormats = setOf<String>()
-    private val siteAppVersion = "10.12.1103"
+    private val siteAppVersion = "10.12.1119"
     private val sitePlayerCases = setOf<String>("cipher-signature", "session-bootstrap", "graphql-persisted", "drm-widevine")
     private val siteRegion = "MX"
     private val siteLocale = "es-419"

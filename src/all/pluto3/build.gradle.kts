@@ -11,12 +11,12 @@ android {
         applicationId = "eu.kanade.tachiyomi.animeextension.all.pluto3"
         minSdk = 21
         targetSdk = 34
-        versionCode = 13
-        versionName = "16.13"
+        versionCode = 14
+        versionName = "16.14"
     }
 
     base {
-        archivesName.set("aniyomi-all.pluto3-v16.13")
+        archivesName.set("aniyomi-all.pluto3-v16.14")
     }
 
     signingConfigs {
