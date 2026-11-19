@@ -46,6 +46,53 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     private val latestPath = ""
     private val searchPath = ""
     private val searchParam = ""
+    private val pageLanguage = "es"
+
+    // Títulos reales declarados por el sitio con schema.org ItemList. Se usan
+    // sólo cuando el HTML no expone tarjetas (SPA); nunca se inventan títulos.
+    private data class LdRecord(
+        val title: String,
+        val alternateTitle: String?,
+        val language: String?,
+        val url: String,
+        val image: String?
+    )
+
+    private val jsonLdRecords = emptyList<LdRecord>()
+
+    private fun recordToAnime(record: LdRecord): SAnime = SAnime.create().apply {
+        setUrlWithoutDomain(record.url)
+        title = preferredRecordTitle(record)
+        thumbnail_url = record.image
+    }
+
+    /** Idioma pedido > alternativa en inglés > nombre original del sitio. */
+    private fun preferredRecordTitle(record: LdRecord): String {
+        val alt = record.alternateTitle?.takeIf { it.isNotBlank() }
+        return when {
+            alt != null && (lang == "en" || record.language != lang) -> alt
+            else -> record.title
+        }
+    }
+
+    /** Prioriza atributos localizados reales; el texto visible manda si la página ya está en el idioma pedido. */
+    private fun pickTitle(element: Element, titleSelector: String): String {
+        val text = element.selectFirst(titleSelector)?.text()?.trim().orEmpty()
+            .ifBlank { element.selectFirst("h2, h3, .title, [class*=title]")?.text()?.trim().orEmpty() }
+        fun attr(name: String): String = element.attr(name).trim()
+            .ifBlank { element.selectFirst("[$name]")?.attr(name)?.trim().orEmpty() }
+        val attrs = if (lang == "en") {
+            listOf("data-title-en", "title")
+        } else {
+            listOf("data-title-es", "data-title-en", "title")
+        }
+        if (pageLanguage == lang && text.isNotBlank()) return text
+        for (name in attrs) {
+            val value = attr(name)
+            if (value.isNotBlank()) return value
+        }
+        return text.ifBlank { attr("alt") }.ifBlank { "Sin Título" }
+    }
 
     private fun pageUrl(path: String, page: Int): String {
         val clean = if (path.isEmpty()) "/" else if (path.startsWith("/")) path else "/$path"
@@ -88,10 +135,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         // solo busca descendientes, así que hay que aceptar el propio nodo.
         val link = if (element.tagName() == "a") element else element.selectFirst("a")
         setUrlWithoutDomain(link?.attr("href") ?: "")
-        title = element.selectFirst("img")?.text()?.trim()?.takeIf { it.isNotEmpty() }
-            ?: link?.attr("title")?.trim()?.takeIf { it.isNotEmpty() }
-            ?: element.selectFirst("img[alt]")?.attr("alt")?.trim()?.takeIf { it.isNotEmpty() }
-            ?: "Sin Título"
+        title = pickTitle(element, "img")
         thumbnail_url = element.selectFirst("img")
             ?.let { img ->
                 img.attr("abs:src")
@@ -103,8 +147,25 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
 
     override fun popularAnimeNextPageSelector(): String? = "".ifBlank { null }
 
-    override fun popularAnimeParse(response: Response): AnimesPage =
-        filterBlacklistedAnimes(super.popularAnimeParse(response))
+    override fun popularAnimeParse(response: Response): AnimesPage {
+        val page = filterBlacklistedAnimes(super.popularAnimeParse(response))
+        return withJsonLdFallback(page, "")
+    }
+
+    private fun withJsonLdFallback(page: AnimesPage, query: String): AnimesPage {
+        var animes = page.animes
+        if (query.isNotBlank()) {
+            val q = query.trim().lowercase()
+            animes = animes.filter { it.title.lowercase().contains(q) }
+        }
+        if (animes.isEmpty() && jsonLdRecords.isNotEmpty()) {
+            animes = jsonLdRecords
+                .map(::recordToAnime)
+                .filter { anime -> query.isBlank() || anime.title.lowercase().contains(query.trim().lowercase()) }
+            return AnimesPage(animes, false)
+        }
+        return AnimesPage(animes, page.hasNextPage)
+    }
 
     // ============================== LATEST UPDATES ==============================
     override fun latestUpdatesRequest(page: Int): Request = GET(pageUrl(latestPath, page), headers)
@@ -115,8 +176,10 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
 
     override fun latestUpdatesNextPageSelector(): String? = "".ifBlank { null }
 
-    override fun latestUpdatesParse(response: Response): AnimesPage =
-        filterBlacklistedAnimes(super.latestUpdatesParse(response))
+    override fun latestUpdatesParse(response: Response): AnimesPage {
+        val page = filterBlacklistedAnimes(super.latestUpdatesParse(response))
+        return withJsonLdFallback(page, "")
+    }
 
     // ============================== SEARCH ANIME ==============================
     override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList): Request {
@@ -128,8 +191,12 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         } else {
             pageUrl(listingPath, page)
         }
-        return GET(url, headers)
+        lastSearchQuery = finalQuery
+        val finalUrl = url
+        return GET(finalUrl, headers)
     }
+
+    private var lastSearchQuery = ""
 
     override fun searchAnimeSelector(): String = "a.TileLink_tileLink__pIMWG"
 
@@ -137,8 +204,12 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
 
     override fun searchAnimeNextPageSelector(): String? = "".ifBlank { null }
 
-    override fun searchAnimeParse(response: Response): AnimesPage =
-        filterBlacklistedAnimes(super.searchAnimeParse(response))
+    override fun searchAnimeParse(response: Response): AnimesPage {
+        val page = filterBlacklistedAnimes(super.searchAnimeParse(response))
+        // Sin endpoint de búsqueda, el sitio devuelve el catálogo sin filtrar.
+        // Filtrar localmente es honesto: no fingimos que el servidor buscó.
+        return withJsonLdFallback(page, lastSearchQuery)
+    }
 
     private fun filterBlacklistedAnimes(page: AnimesPage): AnimesPage {
         val rawBlacklist = preferences.getString("genre_blacklist_text", "") ?: ""
@@ -212,7 +283,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     // a la verificación real: sólo ordenan los candidatos a probar.
     private val siteStreamFormats = setOf<String>()
     private val siteAppVersion = "10.12.1103"
-    private val sitePlayerCases = setOf<String>("session-bootstrap", "graphql-persisted", "drm-widevine")
+    private val sitePlayerCases = setOf<String>("cipher-signature", "session-bootstrap", "graphql-persisted", "drm-widevine")
     private val siteRegion = "MX"
     private val siteLocale = "es-419"
 
