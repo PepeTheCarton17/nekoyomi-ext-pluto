@@ -359,6 +359,14 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
      *  cabeceras de navegador y entrega el Video con las que sí funcionaron.
      *  Si ninguno funciona, lanza un error concreto en vez de dejar que el
      *  reproductor muestre un genérico `loading failed`. */
+    /** Reconstruye un Video con el constructor público de 4 argumentos. Evita
+     *  `copy`/`copy$default`: esa función sintética no existe en todas las
+     *  versiones de la librería de extensiones y provoca un NoSuchMethodError
+     *  en tiempo de ejecución antes de mostrar las calidades. */
+    private fun rebuildVideo(video: Video, quality: String, headers: Headers?): Video {
+        return Video(video.url, quality, video.videoUrl, headers)
+    }
+
     /** Etiqueta con idiomas REALES del HLS. Si no hay pistas declaradas, no añade nada. */
     private fun labelWithTracks(video: Video, probe: StreamProbe): Video {
         val parts = mutableListOf<String>()
@@ -366,7 +374,8 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         if (probe.subLangs.isNotEmpty()) parts.add("subs " + probe.subLangs.joinToString("/"))
         if (probe.inconclusive) parts.add("sin verificar")
         if (parts.isEmpty()) return video
-        return video.copy(quality = video.quality + " · " + parts.joinToString(" · "))
+        val labeled = video.quality.orEmpty() + " · " + parts.joinToString(" · ")
+        return rebuildVideo(video, labeled, video.headers)
     }
 
     private fun verifyCandidates(candidates: List<Video>): List<Video> {
@@ -385,10 +394,11 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             }
             val browser = checkStream(url, browserHeaders)
             if (browser.ok || browser.inconclusive) {
+                val labeled = labelWithTracks(video, browser)
                 val chosen = if (browser.ok) {
-                    labelWithTracks(video, browser).copy(headers = browserHeaders)
+                    rebuildVideo(labeled, labeled.quality.orEmpty(), browserHeaders)
                 } else {
-                    labelWithTracks(video, browser)
+                    labeled
                 }
                 if (browser.inconclusive) {
                     Log.w("AEXT", "candidato entregado con cabeceras de navegador sin verificar: ${url.substringBefore('?')}")
@@ -753,7 +763,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         val locale = siteLocale.takeIf { it.isNotBlank() }
         val context = listOfNotNull(region, locale).joinToString(" · ")
         val label = if (context.isBlank()) "Pluto TV" else "Pluto TV ($context)"
-        return listOf(Video(master, label, "HLS", browserHeaders))
+        return listOf(Video(ctx.url, label, master, browserHeaders))
     }
 
     // ---- Estrategia de respaldo: GraphQL legado con hashes persistentes ----
@@ -914,7 +924,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         //    que se perdía si sólo le pasábamos una variante suelta.
         val masterUrl = plutoPlayout + path.trimStart('/')
         val masterVideoUrl = "$masterUrl?jwt=${Uri.encode(jwt)}"
-        return listOf(Video(masterVideoUrl, "Pluto TV", "HLS", headers))
+        return listOf(Video(ctx.url, "Pluto TV", masterVideoUrl, headers))
     }
 
     private fun serverFromUrl(url: String): String {
