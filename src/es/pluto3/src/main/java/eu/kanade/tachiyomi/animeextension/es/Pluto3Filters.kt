@@ -10,17 +10,6 @@ object Pluto3Filters {
     class GenreFilter(name: String, val genres: List<Genre>) :
         AnimeFilter.Select<String>(name, genres.map { it.name }.toTypedArray())
 
-    class AudioFilter : AnimeFilter.Select<String>(
-        "Audio / Doblaje",
-        arrayOf("Todos", "Subtitulado (SUB)", "Doblado (DUB)")
-    ) {
-        val vals = arrayOf(
-            Pair("all", ""),
-            Pair("sub", "sub"),
-            Pair("dub", "dub")
-        )
-    }
-
     val DEFAULT_GENRES = listOf(
         Genre("Acción", "accion"),
         Genre("Aventura", "aventura"),
@@ -43,7 +32,6 @@ object Pluto3Filters {
 
     fun getFilterList(): AnimeFilterList = AnimeFilterList(
         Header("Filtros de búsqueda y catálogo"),
-        AudioFilter(),
         GenreFilter("Género (#)", DEFAULT_GENRES)
     )
 }
