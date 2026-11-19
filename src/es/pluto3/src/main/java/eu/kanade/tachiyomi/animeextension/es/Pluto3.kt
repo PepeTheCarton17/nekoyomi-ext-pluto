@@ -218,6 +218,9 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     // a la verificación real: sólo ordenan los candidatos a probar.
     private val siteStreamFormats = setOf<String>()
     private val siteAppVersion = "10.12.1096"
+    private val sitePlayerCases = setOf<String>()
+    private val siteRegion = "MX"
+    private val siteLocale = "es-419"
 
     // ============================== VIDEO LIST & EXTRACTORS ==============================
 
@@ -241,7 +244,27 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         val size: Int = 0,
         val body: String = "",
         val inconclusive: Boolean = false,
+        // Pistas reales declaradas por el máster HLS. Se usan para etiquetar
+        // el vídeo con idiomas detectados, nunca con un DUB supuesto.
+        val audioLangs: List<String> = emptyList(),
+        val subLangs: List<String> = emptyList(),
     )
+
+    /** Lee `#EXT-X-MEDIA` y devuelve (audio, subtítulos) con su idioma real. */
+    private fun hlsTracks(body: String): Pair<List<String>, List<String>> {
+        val audio = linkedSetOf<String>()
+        val subs = linkedSetOf<String>()
+        for (line in body.lineSequence()) {
+            if (!line.startsWith("#EXT-X-MEDIA")) continue
+            val type = Regex("""TYPE=([A-Z]+)""").find(line)?.groupValues?.get(1)?.uppercase() ?: continue
+            val lang = Regex("""LANGUAGE="([^"]+)"""").find(line)?.groupValues?.get(1)?.trim().orEmpty()
+            val name = Regex("""NAME="([^"]+)"""").find(line)?.groupValues?.get(1)?.trim().orEmpty()
+            val code = lang.takeIf { it.isNotEmpty() && it != "und" } ?: name
+            if (code.isEmpty()) continue
+            if (type == "AUDIO") audio.add(code) else if (type == "SUBTITLES") subs.add(code)
+        }
+        return audio.toList() to subs.toList()
+    }
 
     private val browserHeaders: Headers by lazy {
         Headers.Builder()
@@ -262,11 +285,15 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         client.newCall(request).execute().use { response ->
             val body = if (readBody || isPlaylist(url)) response.body?.string().orEmpty() else ""
             val contentType = response.header("Content-Type").orEmpty()
+            val tracks = if (body.contains("#EXT-X-MEDIA")) hlsTracks(body) else emptyList<String>() to emptyList<String>()
             when {
                 !response.isSuccessful -> StreamProbe(false, "HTTP ${response.code}")
                 contentType.startsWith("text/html", ignoreCase = true) -> StreamProbe(false, "HTML en vez de stream")
                 isPlaylist(url) && !body.contains("#EXTM3U") -> StreamProbe(false, "playlist no válida")
-                else -> StreamProbe(true, "HTTP ${response.code}", body.length, body)
+                else -> StreamProbe(
+                    true, "HTTP ${response.code}", body.length, body,
+                    audioLangs = tracks.first, subLangs = tracks.second,
+                )
             }
         }
     } catch (e: Exception) {
@@ -293,7 +320,11 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             val key = probeOnce(absolutize(childUrl, keyRef), extra)
             if (!key.ok && !key.inconclusive) return StreamProbe(false, "clave AES: ${key.detail}")
         }
-        return StreamProbe(true, "HLS verificado", first.size)
+        return StreamProbe(
+            true, "HLS verificado", first.size,
+            audioLangs = (first.audioLangs + child.audioLangs).distinct(),
+            subLangs = (first.subLangs + child.subLangs).distinct(),
+        )
     }
 
     private fun capabilityRank(video: Video): Int {
@@ -311,6 +342,15 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
      *  cabeceras de navegador y entrega el Video con las que sí funcionaron.
      *  Si ninguno funciona, lanza un error concreto en vez de dejar que el
      *  reproductor muestre un genérico `loading failed`. */
+    /** Etiqueta con idiomas REALES del HLS. Si no hay pistas declaradas, no añade nada. */
+    private fun labelWithTracks(video: Video, probe: StreamProbe): Video {
+        val parts = mutableListOf<String>()
+        if (probe.audioLangs.isNotEmpty()) parts.add("audio " + probe.audioLangs.joinToString("/"))
+        if (probe.subLangs.isNotEmpty()) parts.add("subs " + probe.subLangs.joinToString("/"))
+        if (parts.isEmpty()) return video
+        return video.copy(quality = video.quality + " · " + parts.joinToString(" · "))
+    }
+
     private fun verifyCandidates(candidates: List<Video>): List<Video> {
         if (candidates.isEmpty()) return candidates
         val verified = mutableListOf<Video>()
@@ -319,12 +359,15 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             val url = video.videoUrl ?: continue
             val own = checkStream(url, video.headers ?: headers)
             if (own.ok || own.inconclusive) {
-                verified.add(video)
+                verified.add(if (own.ok) labelWithTracks(video, own) else video)
                 continue
             }
             val browser = checkStream(url, browserHeaders)
             if (browser.ok || browser.inconclusive) {
-                verified.add(if (browser.ok) video.copy(headers = browserHeaders) else video)
+                val chosen = if (browser.ok) {
+                    labelWithTracks(video, browser).copy(headers = browserHeaders)
+                } else video
+                verified.add(chosen)
                 continue
             }
             failures.add("${url.substringBefore('?')}: ${own.detail}; con cabeceras de navegador: ${browser.detail}")
@@ -363,13 +406,63 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             .apply()
     }
 
+    private fun strategyPriority(id: String): Int {
+        // El caso detectado fija el orden inicial; las estadísticas reales lo
+        // corrigen después. Así no empezamos probando una ruta imposible.
+        if (sitePlayerCases.contains("session-bootstrap")) {
+            return when (id) {
+                "api-session" -> 0
+                "api-graphql" -> 1
+                else -> 2
+            }
+        }
+        if (sitePlayerCases.contains("graphql-persisted")) {
+            return when (id) {
+                "api-graphql" -> 0
+                "api-session" -> 1
+                else -> 2
+            }
+        }
+        if (sitePlayerCases.contains("iframe-player") || sitePlayerCases.contains("dash-mpd")) {
+            return when (id) {
+                "html-embeds" -> 0
+                "api-session" -> 1
+                else -> 2
+            }
+        }
+        return when (id) {
+            "api-session" -> 0
+            "api-graphql" -> 1
+            else -> 2
+        }
+    }
+
+    /** El usuario puede forzar la ruta real; `auto` es la recomendación. */
+    private fun apiMode(): String = preferences.getString("api_mode", "auto")
+        ?.takeIf { it in setOf("auto", "session", "graphql", "html") } ?: "auto"
+
+    private fun apiModeLabel(mode: String): String = when (mode) {
+        "session" -> "sesión web"
+        "graphql" -> "GraphQL interno"
+        "html" -> "scraping HTML"
+        else -> "Automático"
+    }
+
     private fun orderedStrategies(): List<VideoStrategy> {
         val all = listOf(
-            VideoStrategy("api-session", 0) { ctx -> apiSessionVideos(ctx) },
-            VideoStrategy("api-graphql", 1) { ctx -> plutoGraphqlVideos(ctx) },
-            VideoStrategy("html-embeds", 2) { ctx -> htmlEmbedVideos(ctx) },
+            VideoStrategy("api-session", strategyPriority("api-session")) { ctx -> apiSessionVideos(ctx) },
+            VideoStrategy("api-graphql", strategyPriority("api-graphql")) { ctx -> plutoGraphqlVideos(ctx) },
+            VideoStrategy("html-embeds", strategyPriority("html-embeds")) { ctx -> htmlEmbedVideos(ctx) },
         )
-        return all.sortedWith(
+        // Un modo explícito NO es una preferencia decorativa: limita de verdad
+        // qué resolutores se ejecutan, para poder diagnosticar fallos por API.
+        val selected = when (apiMode()) {
+            "session" -> all.filter { it.id == "api-session" }
+            "graphql" -> all.filter { it.id == "api-graphql" }
+            "html" -> all.filter { it.id == "html-embeds" }
+            else -> all
+        }
+        return selected.sortedWith(
             compareByDescending<VideoStrategy> { s ->
                 val (ok, fail) = strategyStats(s.id)
                 (ok + 1.0) / (ok + fail + 2.0)
@@ -429,7 +522,12 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             recordStrategy(strategy.id, true)
             return verified
         }
-        throw Exception("AEXT no pudo resolver ningún stream (${errors.take(4).joinToString(" | ")})")
+        val mode = apiMode()
+        val detail = errors.take(4).joinToString(" | ")
+        throw Exception(
+            if (mode == "auto") "AEXT no pudo resolver ningún stream ($detail)"
+            else "AEXT no pudo resolver ningún stream con el modo ${apiModeLabel(mode)} ($detail). Cambia el método de resolución a Automático en los ajustes de la extensión."
+        )
     }
 
     private fun htmlEmbedVideos(ctx: VideoContext): List<Video> {
@@ -505,12 +603,28 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     private data class PlutoSession(val stitcher: String, val params: String, val token: String)
 
     private fun plutoContentId(ctx: VideoContext): Pair<String, String>? {
-        val fromUrl = Regex("""(episode|movie)/([0-9a-f]{24})""", RegexOption.IGNORE_CASE)
-            .find(ctx.url)?.let { it.groupValues[1].lowercase() to it.groupValues[2] }
+        // La web sirve películas en `/movies/<id>/` (plural) y episodios en
+        // `/shows/<show>/episode/<id>/`. El regex anterior sólo aceptaba
+        // `/movie/` y descartaba las películas antes de llamar a boot/start.
+        val fromUrl = Regex("""(episodes?|movies?)/([0-9a-f]{24})""", RegexOption.IGNORE_CASE)
+            .find(ctx.url)?.let {
+                val raw = it.groupValues[1].lowercase()
+                (if (raw.startsWith("movie")) "movie" else "episode") to it.groupValues[2]
+            }
         if (fromUrl != null) return fromUrl
-        val fromHtml = Regex("\"contentId\"\\s*:\\s*\"([0-9a-f]{24})\"", RegexOption.IGNORE_CASE)
-            .find(ctx.html)?.groupValues?.get(1)
-        return fromHtml?.let { "episode" to it }
+
+        // El estado de Next.js/RSC serializa contentId tanto con comillas
+        // normales como escapadas (`\"contentId\"`). Normalizamos antes de leer.
+        val flat = ctx.html.replace("\\\"", "\"")
+        val id = Regex("contentId\\s*[:=]\\s*[\"']([0-9a-f]{24})[\"']", RegexOption.IGNORE_CASE)
+            .find(flat)?.groupValues?.get(1)
+            ?: Regex("data-content-id\\s*=\\s*[\"']([0-9a-f]{24})[\"']", RegexOption.IGNORE_CASE)
+                .find(flat)?.groupValues?.get(1)
+            ?: return null
+        val declaredMovie = Regex("\"contentType\"\\s*:\\s*\"(movie|episode)\"", RegexOption.IGNORE_CASE)
+            .find(flat)?.groupValues?.get(1)?.equals("movie", ignoreCase = true) == true
+        val kind = if (declaredMovie || ctx.url.contains("/movie", ignoreCase = true)) "movie" else "episode"
+        return kind to id
     }
 
     private fun plutoJsonField(body: String, name: String): String? =
@@ -551,16 +665,39 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         }
     }
 
+    /** Región resuelta por el propio JWT de boot/start (no por query params). */
+    private fun plutoSessionRegion(token: String): String? {
+        val parts = token.split(".")
+        if (parts.size < 2) return null
+        return try {
+            val payload = String(
+                android.util.Base64.decode(
+                    parts[1], android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING
+                ),
+                Charsets.UTF_8,
+            )
+            Regex("\"country\"\\s*:\\s*\"([^\"]+)\"").find(payload)?.groupValues?.get(1)
+                ?: Regex("\"activeRegion\"\\s*:\\s*\"([^\"]+)\"").find(payload)?.groupValues?.get(1)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     private fun apiSessionVideos(ctx: VideoContext): List<Video>? {
         if (!ctx.url.contains("pluto.tv", ignoreCase = true)) return null
         val (kind, id) = plutoContentId(ctx)
-            ?: throw Exception("No se pudo extraer el contentId de Pluto TV")
+            ?: throw Exception("No se pudo extraer el contentId de Pluto TV de ${ctx.url.substringBefore('?')} ni del estado del sitio")
         val session = plutoBootSession()
         val segment = if (kind == "movie") "movie" else "episode"
         val master = "${session.stitcher}/v2/stitch/hls/$segment/$id/master.m3u8" +
             "?${session.params}&jwt=${Uri.encode(session.token)}" +
             "&includeExtendedEvents=true&masterJWTPassthrough=true"
-        return listOf(Video(master, "Pluto TV", "HLS", browserHeaders))
+        // La región depende de la IP: la leemos del token, no de un ajuste falso.
+        val region = plutoSessionRegion(session.token) ?: siteRegion.takeIf { it.isNotBlank() }
+        val locale = siteLocale.takeIf { it.isNotBlank() }
+        val context = listOfNotNull(region, locale).joinToString(" · ")
+        val label = if (context.isBlank()) "Pluto TV" else "Pluto TV ($context)"
+        return listOf(Video(master, label, "HLS", browserHeaders))
     }
 
     // ---- Estrategia de respaldo: GraphQL legado con hashes persistentes ----
@@ -695,8 +832,8 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
 
     private fun plutoGraphqlVideos(ctx: VideoContext): List<Video>? {
         if (!ctx.url.contains("pluto.tv", ignoreCase = true)) return null
-        val contentId = Regex("""/episode/([0-9a-f]{24})""").find(ctx.url)
-            ?: throw Exception("No se pudo extraer el contentId de Pluto TV")
+        val (_, contentId) = plutoContentId(ctx)
+            ?: throw Exception("No se pudo extraer el contentId de Pluto TV para GraphQL")
 
         // 1) PtvStart -> JWT + CBS_COM (reintento y extracción robusta).
         val (jwt, cbsCookie) = plutoPtvStart()
@@ -704,7 +841,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         // 2) StreamingUrl con la cookie CBS_COM -> ruta del máster.
         val path = plutoGqlGet(
             "StreamingUrl", plutoHashStreaming,
-            "{\"params\":{\"appVersion\":\"10.12.1074\",\"contentId\":\"${contentId.groupValues[1]}\",\"contentType\":\"vod\",\"drm\":\"\",\"drmLevel\":\"\",\"streamType\":\"stitcher\"}}",
+            "{\"params\":{\"appVersion\":\"$siteAppVersion\",\"contentId\":\"$contentId\",\"contentType\":\"vod\",\"drm\":\"\",\"drmLevel\":\"\",\"streamType\":\"stitcher\"}}",
             "streaming-url-request", cbsCookie
         ).use { resp ->
             if (!resp.isSuccessful) throw Exception("Pluto StreamingUrl HTTP ${resp.code}")
@@ -754,9 +891,10 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         }
     }
 
+    /** Sin evidencia explícita NO se etiqueta nada: mejor silencio que un DUB falso. */
     private fun detectAudio(html: String, url: String): String {
         val idx = html.indexOf(url)
-        if (idx <= 0) return "SUB"
+        if (idx <= 0) return ""
         val before = html.substring(0, idx).uppercase()
         val dubAt = maxOf(
             before.lastIndexOf("DUB"),
@@ -765,11 +903,15 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             before.lastIndexOf("AUDIO LATINO")
         )
         val subAt = before.lastIndexOf("SUB")
-        return if (dubAt > subAt) "DUB" else "SUB"
+        return when {
+            dubAt >= 0 && dubAt > subAt -> "DUB"
+            subAt >= 0 -> "SUB"
+            else -> ""
+        }
     }
 
     private fun resolveVideos(server: String, url: String, audio: String, baseHeaders: Headers): List<Video> {
-        val prefix = "[$audio] "
+        val prefix = if (audio.isBlank()) "" else "[$audio] "
         val s = server.lowercase()
         val u = url.lowercase()
         return when {
@@ -1073,9 +1215,19 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             entries = arrayOf("Mostrar Todos", "Priorizar Subtitulado", "Priorizar Doblaje (DUB)")
             entryValues = arrayOf("all", "sub", "dub")
             setDefaultValue("all")
-            summary = "%s"
+            summary = "Solo se aplica si la fuente declara pistas de audio/subtítulos; DUB nunca se inventa. — %s"
         }
         screen.addPreference(audioPref)
+
+        val apiPref = ListPreference(screen.context).apply {
+            key = "api_mode"
+            title = "Método de resolución (endpoints del sitio)"
+            entries = arrayOf("Automático (recomendado)", "Sesión web (boot/start)", "GraphQL interno (hashes del sitio)", "Scraping HTML / embeds")
+            entryValues = arrayOf("auto", "session", "graphql", "html")
+            setDefaultValue("auto")
+            summary = "No hay API pública: son rutas internas leídas del sitio y replicadas. No activa una ruta que el sitio no usa. — %s"
+        }
+        screen.addPreference(apiPref)
 
         val serverPref = ListPreference(screen.context).apply {
             key = "preferred_server"
@@ -1083,7 +1235,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             entries = arrayOf("Any", "MP4Upload", "Voe", "Byse (StreamWish)", "Zilla (HLS)", "Direct")
             entryValues = arrayOf("any", "mp4upload", "voe", "byse", "zilla", "direct")
             setDefaultValue("any")
-            summary = "%s"
+            summary = "Solo reordena servidores ya detectados; no activa un servidor que no está disponible. — %s"
         }
         screen.addPreference(serverPref)
 
