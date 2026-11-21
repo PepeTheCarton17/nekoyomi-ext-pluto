@@ -6,33 +6,24 @@ import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
 object FrameFilters {
     class Header(name: String) : AnimeFilter.Header(name)
 
-    class ParamSelectFilter(name: String, val param: String, val vals: Array<Pair<String, String>>) :
-        AnimeFilter.Select<String>(name, (listOf("All") + vals.map { it.first }).toTypedArray())
+    open class QueryPartFilter(displayName: String, val param: String, val vals: Array<Pair<String, String>>) :
+        AnimeFilter.Select<String>(displayName, vals.map { it.first }.toTypedArray()) {
+        fun toQueryPart(): String = vals[state].second
+    }
 
-    class ParamCheckFilter(name: String, val param: String, val value: String) :
-        AnimeFilter.CheckBox(name, false)
+    open class CheckBoxFilterList(name: String, val param: String, val pairs: Array<Pair<String, String>>) :
+        AnimeFilter.Group<AnimeFilter.CheckBox>(name, pairs.map { CheckBoxVal(it.first, false) })
 
-    class ParamTextFilter(name: String, val param: String) : AnimeFilter.Text(name)
+    class CheckBoxVal(name: String, state: Boolean = false) : AnimeFilter.CheckBox(name, state)
+
+    class TextFilter(name: String, val param: String) : AnimeFilter.Text(name)
 
     fun getFilterList(): AnimeFilterList = AnimeFilterList(
         Header("Search & Catalog Filters"),
-        ParamCheckFilter("Dubbed", "isFrameDub", "true"),
-        ParamTextFilter("Appdeeplinkscheme", "appDeeplinkScheme"),
-        ParamTextFilter("Appstorelink", "appstoreLink"),
-        ParamTextFilter("Authenticationcodecooldown", "authenticationCodeCooldown"),
-        ParamTextFilter("Authenticationqrcooldown", "authenticationQrCooldown"),
-        ParamTextFilter("Cookiesexpireindays", "cookiesExpireInDays"),
-        ParamTextFilter("Googleplaylink", "googleplayLink"),
-        ParamTextFilter("Gtmevents", "gtmEvents"),
-        ParamTextFilter("Huaweistorelink", "huaweiStoreLink"),
-        ParamTextFilter("Modals", "modals"),
-        ParamTextFilter("Siteurl", "siteUrl"),
-        ParamTextFilter("Clickmerchant", "clickMerchantId"),
-        ParamTextFilter("Clickservice", "clickServiceId"),
-        ParamTextFilter("Parsecardtype", "parseCardType"),
-        ParamTextFilter("Paymemerchant", "paymeMerchantId"),
-        ParamTextFilter("Plummerchant", "plumMerchantId"),
-        ParamTextFilter("Rendercarderror", "renderCardError"),
-        ParamTextFilter("Resolvesubfeatureicon", "resolveSubFeatureIcon"),
+        QueryPartFilter("Dubbed", "isFrameDub", arrayOf(Pair("All", ""), Pair("True", "true"))),
+        TextFilter("Clickmerchant", "clickMerchantId"),
+        TextFilter("Clickservice", "clickServiceId"),
+        TextFilter("Paymemerchant", "paymeMerchantId"),
+        TextFilter("Plummerchant", "plumMerchantId"),
     )
 }
