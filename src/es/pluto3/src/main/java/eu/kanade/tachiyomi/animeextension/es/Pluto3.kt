@@ -194,7 +194,27 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             pageUrl(listingPath, page)
         }
         lastSearchQuery = finalQuery
-        val finalUrl = url
+        val urlBuilder = Uri.parse(url).buildUpon()
+        for (f in filters) {
+            when (f) {
+                is Pluto3Filters.QueryPartFilter -> {
+                    val value = f.toQueryPart()
+                    if (value.isNotBlank()) urlBuilder.appendQueryParameter(f.param, value)
+                }
+                is Pluto3Filters.CheckBoxFilterList -> {
+                    f.state.filter { it.state }.forEach { box ->
+                        f.pairs.firstOrNull { it.first == box.name }?.second?.let { value ->
+                            urlBuilder.appendQueryParameter(f.param, value)
+                        }
+                    }
+                }
+                is Pluto3Filters.TextFilter -> if (f.state.isNotBlank()) {
+                    urlBuilder.appendQueryParameter(f.param, f.state)
+                }
+                else -> Unit
+            }
+        }
+        val finalUrl = urlBuilder.build().toString()
         return GET(finalUrl, headers)
     }
 
