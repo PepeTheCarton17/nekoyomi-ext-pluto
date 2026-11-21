@@ -35,18 +35,18 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
 
     override val baseUrl = "https://frame.uz"
 
-    override val lang = "es"
+    override val lang = "en"
 
     override val supportsLatest = false
 
     override val client: OkHttpClient = network.cloudflareClient
 
     // Rutas detectadas durante el análisis (vacías si no se encontraron).
-    private val listingPath = "/en/catalog"
+    private val listingPath = "/catalog"
     private val latestPath = ""
-    private val searchPath = "/en/catalog"
+    private val searchPath = "/catalog"
     private val searchParam = "name"
-    private val pageLanguage = "en"
+    private val pageLanguage = "uz"
 
     // Títulos reales declarados por el sitio con schema.org ItemList. Se usan
     // sólo cuando el HTML no expone tarjetas (SPA); nunca se inventan títulos.
@@ -60,16 +60,16 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     )
 
     private val jsonLdRecords = listOf(
-        LdRecord(title = "Empress Ki", alternateTitle = null, language = null, url = "https://frame.uz/en/cinema/imperatrica-ki", image = "https://st.frame.uz/files/contents/7291/poster/c486bb20-4ffc-4bd4-bcc0-1051e0905bc0_En.webp"),
-        LdRecord(title = "Intouchables", alternateTitle = null, language = null, url = "https://frame.uz/en/cinema/intouchables", image = "https://st.frame.uz/files/contents/298/poster/18ad1fdb-dd38-47f9-b80b-97e3224c6577_En.webp"),
-        LdRecord(title = "Heavy luxry", alternateTitle = null, language = null, url = "https://frame.uz/en/cinema/tyazhyolyy-lyuks", image = "https://st.frame.uz/files/contents/57504/poster/4366779f-853d-43dd-9f70-71a80da27da6_En.webp"),
-        LdRecord(title = "Like Nastya", alternateTitle = null, language = null, url = "https://frame.uz/en/cinema/layk-nastya", image = "https://st.frame.uz/files/contents/56457/poster/9d9e3979-bd79-42e4-8912-709deb1001e7_En.webp"),
-        LdRecord(title = "Istanbul is to blame for everything", alternateTitle = null, language = null, url = "https://frame.uz/en/cinema/vo-vsem-vinovat-stambul", image = "https://st.frame.uz/files/contents/45462/poster/a1a24635-258b-42d6-8af6-2733b5687cfe_Ru.webp"),
-        LdRecord(title = "The final blow", alternateTitle = null, language = null, url = "https://frame.uz/en/cinema/so-nggi-zarba", image = "https://st.frame.uz/files/contents/56688/poster/59be6df1-f766-45fb-a51e-b3a7bb1b75de_En.webp"),
-        LdRecord(title = "Molodezhka", alternateTitle = null, language = null, url = "https://frame.uz/en/cinema/molodezka", image = "https://st.frame.uz/files/contents/23628/poster/0ce0b4c5-87c7-470a-811b-fbab6797571e_En.webp"),
-        LdRecord(title = "Boy's word. Blood on the asphalt", alternateTitle = null, language = null, url = "https://frame.uz/en/cinema/slovo-pacana-krov-na-asfalte", image = "https://st.frame.uz/files/contents/2515/poster/97e99f5d-5df7-4eec-8794-1960af2700cf_En.webp"),
-        LdRecord(title = "Debt", alternateTitle = null, language = null, url = "https://frame.uz/en/cinema/dolg", image = "https://st.frame.uz/files/contents/54827/poster/c4066ca2-daff-4dc4-b798-e0fb4cac2df9_En.webp"),
-        LdRecord(title = "Fara Tashkentsky", alternateTitle = null, language = null, url = "https://frame.uz/en/cinema/fara-taskentskij", image = "https://st.frame.uz/files/contents/5821/poster/4e16a318-1f1e-4b56-9139-25a979567e0f_En.webp")
+        LdRecord(title = "Imperator rafiqasi Ki", alternateTitle = null, language = null, url = "https://frame.uz/cinema/imperatrica-ki", image = "https://st.frame.uz/files/contents/7291/poster/e6d4c866-5a89-4fab-82d1-b562b3ffbfcc_Uz.webp"),
+        LdRecord(title = "1+1 qo'shilish kuchi", alternateTitle = null, language = null, url = "https://frame.uz/cinema/intouchables", image = "https://st.frame.uz/files/contents/298/poster/b8c331bf-1141-4344-97da-9343eaf2fe9b_Uz.webp"),
+        LdRecord(title = "Ogi‘r lyuks", alternateTitle = null, language = null, url = "https://frame.uz/cinema/tyazhyolyy-lyuks", image = "https://st.frame.uz/files/contents/57504/poster/8a622de6-1f14-4eae-a96b-ee0209bf7d9b_Uz.webp"),
+        LdRecord(title = "Layk Nastya", alternateTitle = null, language = null, url = "https://frame.uz/cinema/layk-nastya", image = "https://st.frame.uz/files/contents/56457/poster/8c861331-d087-49e1-9685-d70ca373947c_Uz.webp"),
+        LdRecord(title = "Hammasiga Istanbul aybdor", alternateTitle = null, language = null, url = "https://frame.uz/cinema/vo-vsem-vinovat-stambul", image = "https://st.frame.uz/files/contents/45462/poster/3dc5649e-34fc-41d1-a2c9-68874b3d04fb_Uz.webp"),
+        LdRecord(title = "So`nggi zarba", alternateTitle = null, language = null, url = "https://frame.uz/cinema/so-nggi-zarba", image = "https://st.frame.uz/files/contents/56688/poster/d5776654-f7f4-482b-9fef-ecc2a6629a8a_Uz.webp"),
+        LdRecord(title = "Yoshlar", alternateTitle = null, language = null, url = "https://frame.uz/cinema/molodezka", image = "https://st.frame.uz/files/contents/23628/poster/36cd7ab3-26e3-4291-af62-9c95c6a46f41_Uz.webp"),
+        LdRecord(title = "Yigitning so‘zi. Asfaltdagi qon", alternateTitle = null, language = null, url = "https://frame.uz/cinema/slovo-pacana-krov-na-asfalte", image = "https://st.frame.uz/files/contents/2515/poster/4a16674b-6659-4b11-a0c8-ebc4db9f7aae_Uz.webp"),
+        LdRecord(title = "Fara Tashkentskiy", alternateTitle = null, language = null, url = "https://frame.uz/cinema/fara-taskentskij", image = "https://st.frame.uz/files/contents/5821/poster/04ee5bf5-e2e0-4c07-b3b0-755df83f225d_Uz.webp"),
+        LdRecord(title = "Farz", alternateTitle = null, language = null, url = "https://frame.uz/cinema/dolg", image = "https://st.frame.uz/files/contents/54827/poster/381e995d-a876-445d-b838-57e89f14cf25_Uz.webp")
     )
 
     private fun recordToAnime(record: LdRecord): SAnime = SAnime.create().apply {
@@ -97,7 +97,7 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         val attrs = if (lang == "en") {
             listOf("data-title-en", "title")
         } else {
-            listOf("data-title-es", "data-title-en", "title")
+            listOf("data-title-en", "data-title-en", "title")
         }
         if (pageLanguage == lang && text.isNotBlank()) return text
         for (name in attrs) {
@@ -305,7 +305,7 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
 
     // Capacidades detectadas por AEXT en el análisis del sitio. No sustituyen
     // a la verificación real: sólo ordenan los candidatos a probar.
-    private val siteStreamFormats = setOf<String>("iframe")
+    private val siteStreamFormats = setOf<String>("mp4", "iframe")
     private val siteAppVersion = "10.12.1096"
     private val sitePlayerCases = setOf<String>("iframe-player")
     private val siteRegion = ""
@@ -1383,10 +1383,10 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         val methodsPref = ListPreference(screen.context).apply {
             key = "aext_methods_found"
             title = "Métodos disponibles encontrados de reproducción"
-            entries = arrayOf("Reproductor incrustado")
-            entryValues = arrayOf("Reproductor incrustado")
-            summary = "Reproductor incrustado"
-            setDefaultValue(arrayOf("Reproductor incrustado").first())
+            entries = arrayOf("Reproductor incrustado", "MP4 directo")
+            entryValues = arrayOf("Reproductor incrustado", "MP4 directo")
+            summary = "Reproductor incrustado, MP4 directo"
+            setDefaultValue(arrayOf("Reproductor incrustado", "MP4 directo").first())
         }
         screen.addPreference(methodsPref)
 
