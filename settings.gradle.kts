@@ -19,3 +19,4 @@ rootProject.name = "nekoyomi_extensions"
 
 include(":src:es:pluto3")
 include(":src:all:frame")
+include(":src:es:frame")
