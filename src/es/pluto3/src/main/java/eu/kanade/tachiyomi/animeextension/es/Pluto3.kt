@@ -130,14 +130,14 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     // ============================== POPULAR ANIME ==============================
     override fun popularAnimeRequest(page: Int): Request = GET(pageUrl(listingPath, page), headers)
 
-    override fun popularAnimeSelector(): String = "article, div.item, div.card"
+    override fun popularAnimeSelector(): String = "a.TileLink_tileLink__pIMWG"
 
     override fun popularAnimeFromElement(element: Element): SAnime = SAnime.create().apply {
         // En muchas portadas la tarjeta ES el enlace (`a.card`): `selectFirst`
         // solo busca descendientes, así que hay que aceptar el propio nodo.
         val link = if (element.tagName() == "a") element else element.selectFirst("a")
         setUrlWithoutDomain(link?.attr("href") ?: "")
-        title = pickTitle(element, "h3 a, h2 a, .title a")
+        title = pickTitle(element, "img")
         thumbnail_url = element.selectFirst("img")
             ?.let { img ->
                 img.attr("abs:src")
@@ -172,7 +172,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     // ============================== LATEST UPDATES ==============================
     override fun latestUpdatesRequest(page: Int): Request = GET(pageUrl(latestPath, page), headers)
 
-    override fun latestUpdatesSelector(): String = "article, div.item, div.card"
+    override fun latestUpdatesSelector(): String = "a.TileLink_tileLink__pIMWG"
 
     override fun latestUpdatesFromElement(element: Element): SAnime = popularAnimeFromElement(element)
 
@@ -194,33 +194,13 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             pageUrl(listingPath, page)
         }
         lastSearchQuery = finalQuery
-        val urlBuilder = Uri.parse(url).buildUpon()
-        for (f in filters) {
-            when (f) {
-                is Pluto3Filters.QueryPartFilter -> {
-                    val value = f.toQueryPart()
-                    if (value.isNotBlank()) urlBuilder.appendQueryParameter(f.param, value)
-                }
-                is Pluto3Filters.CheckBoxFilterList -> {
-                    f.state.filter { it.state }.forEach { box ->
-                        f.pairs.firstOrNull { it.first == box.name }?.second?.let { value ->
-                            urlBuilder.appendQueryParameter(f.param, value)
-                        }
-                    }
-                }
-                is Pluto3Filters.TextFilter -> if (f.state.isNotBlank()) {
-                    urlBuilder.appendQueryParameter(f.param, f.state)
-                }
-                else -> Unit
-            }
-        }
-        val finalUrl = urlBuilder.build().toString()
+        val finalUrl = url
         return GET(finalUrl, headers)
     }
 
     private var lastSearchQuery = ""
 
-    override fun searchAnimeSelector(): String = "article, div.item, div.card"
+    override fun searchAnimeSelector(): String = "a.TileLink_tileLink__pIMWG"
 
     override fun searchAnimeFromElement(element: Element): SAnime = popularAnimeFromElement(element)
 
@@ -282,7 +262,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     }
 
     // ============================== EPISODES ==============================
-    override fun episodeListSelector(): String = "li.episode, a[href*=/ver/], div.episodios a"
+    override fun episodeListSelector(): String = "a[href*='/episode/']"
 
     override fun episodeFromElement(element: Element): SEpisode = SEpisode.create().apply {
         // La tarjeta puede ser el propio enlace.
