@@ -21,9 +21,7 @@ object FrameFilters {
     fun getFilterList(): AnimeFilterList = AnimeFilterList(
         Header("Search & Catalog Filters"),
         QueryPartFilter("Dubbed", "isFrameDub", arrayOf(Pair("All", ""), Pair("True", "true"))),
-        TextFilter("Clickmerchant", "clickMerchantId"),
-        TextFilter("Clickservice", "clickServiceId"),
-        TextFilter("Paymemerchant", "paymeMerchantId"),
-        TextFilter("Plummerchant", "plumMerchantId"),
+        TextFilter("Search", "query"),
+        TextFilter("Search", "search"),
     )
 }
