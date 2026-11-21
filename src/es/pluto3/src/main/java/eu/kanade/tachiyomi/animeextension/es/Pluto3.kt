@@ -55,7 +55,8 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         val alternateTitle: String?,
         val language: String?,
         val url: String,
-        val image: String?
+        val image: String?,
+        val genre: String? = null
     )
 
     private val jsonLdRecords = emptyList<LdRecord>()
@@ -64,6 +65,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         setUrlWithoutDomain(record.url)
         title = preferredRecordTitle(record)
         thumbnail_url = record.image
+        genre = record.genre
     }
 
     /** Idioma pedido > alternativa en inglés > nombre original del sitio. */
@@ -128,14 +130,14 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     // ============================== POPULAR ANIME ==============================
     override fun popularAnimeRequest(page: Int): Request = GET(pageUrl(listingPath, page), headers)
 
-    override fun popularAnimeSelector(): String = "a.TileLink_tileLink__pIMWG"
+    override fun popularAnimeSelector(): String = "article, div.item, div.card"
 
     override fun popularAnimeFromElement(element: Element): SAnime = SAnime.create().apply {
         // En muchas portadas la tarjeta ES el enlace (`a.card`): `selectFirst`
         // solo busca descendientes, así que hay que aceptar el propio nodo.
         val link = if (element.tagName() == "a") element else element.selectFirst("a")
         setUrlWithoutDomain(link?.attr("href") ?: "")
-        title = pickTitle(element, "img")
+        title = pickTitle(element, "h3 a, h2 a, .title a")
         thumbnail_url = element.selectFirst("img")
             ?.let { img ->
                 img.attr("abs:src")
@@ -170,7 +172,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     // ============================== LATEST UPDATES ==============================
     override fun latestUpdatesRequest(page: Int): Request = GET(pageUrl(latestPath, page), headers)
 
-    override fun latestUpdatesSelector(): String = "a.TileLink_tileLink__pIMWG"
+    override fun latestUpdatesSelector(): String = "article, div.item, div.card"
 
     override fun latestUpdatesFromElement(element: Element): SAnime = popularAnimeFromElement(element)
 
@@ -198,7 +200,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
 
     private var lastSearchQuery = ""
 
-    override fun searchAnimeSelector(): String = "a.TileLink_tileLink__pIMWG"
+    override fun searchAnimeSelector(): String = "article, div.item, div.card"
 
     override fun searchAnimeFromElement(element: Element): SAnime = popularAnimeFromElement(element)
 
@@ -217,13 +219,24 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             .split(",")
             .map { it.trim().lowercase() }
             .filter { it.isNotEmpty() }
+        // Valores elegidos en el filtro de exclusión: ids/nombres reales de las
+        // listas verificadas de la API del sitio, no palabras escritas a mano.
+        val excludedApi = (preferences.getStringSet("excluded_api_values", mutableSetOf<String>()) ?: emptySet())
+            .map { it.lowercase() }
+            .filter { it.isNotBlank() }
 
-        if (blacklistWords.isEmpty()) return page
+        if (blacklistWords.isEmpty() && excludedApi.isEmpty()) return page
 
         val filtered = page.animes.filterNot { anime ->
             val genreLower = anime.genre?.lowercase() ?: ""
+            val genreWords = genreLower.split(",", ";", "|")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+            val excludedHit = excludedApi.any { word ->
+                genreWords.any { genre -> genre == word || genre.contains(word) }
+            }
             val titleLower = anime.title.lowercase()
-            blacklistWords.any { word ->
+            excludedHit || blacklistWords.any { word ->
                 (genreLower.isNotEmpty() && genreLower.contains(word)) || titleLower.contains(word)
             }
         }
@@ -249,7 +262,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     }
 
     // ============================== EPISODES ==============================
-    override fun episodeListSelector(): String = "a[href*='/episode/']"
+    override fun episodeListSelector(): String = "li.episode, a[href*=/ver/], div.episodios a"
 
     override fun episodeFromElement(element: Element): SEpisode = SEpisode.create().apply {
         // La tarjeta puede ser el propio enlace.
@@ -282,7 +295,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     // Capacidades detectadas por AEXT en el análisis del sitio. No sustituyen
     // a la verificación real: sólo ordenan los candidatos a probar.
     private val siteStreamFormats = setOf<String>()
-    private val siteAppVersion = "10.12.1103"
+    private val siteAppVersion = "10.12.1129"
     private val sitePlayerCases = setOf<String>("cipher-signature", "session-bootstrap", "graphql-persisted", "drm-widevine")
     private val siteRegion = "MX"
     private val siteLocale = "es-419"
