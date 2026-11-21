@@ -17,7 +17,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "nekoyomi_extensions"
 
-include(":src:es:pluto3")
-include(":src:es:frame")
 include(":src:all:pluto3")
 include(":src:all:frame")
