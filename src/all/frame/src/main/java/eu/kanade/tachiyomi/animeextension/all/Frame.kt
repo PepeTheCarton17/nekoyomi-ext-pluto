@@ -68,8 +68,8 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         LdRecord(title = "So`nggi zarba", alternateTitle = null, language = null, url = "https://frame.uz/cinema/so-nggi-zarba", image = "https://st.frame.uz/files/contents/56688/poster/d5776654-f7f4-482b-9fef-ecc2a6629a8a_Uz.webp"),
         LdRecord(title = "Yoshlar", alternateTitle = null, language = null, url = "https://frame.uz/cinema/molodezka", image = "https://st.frame.uz/files/contents/23628/poster/36cd7ab3-26e3-4291-af62-9c95c6a46f41_Uz.webp"),
         LdRecord(title = "Yigitning so‘zi. Asfaltdagi qon", alternateTitle = null, language = null, url = "https://frame.uz/cinema/slovo-pacana-krov-na-asfalte", image = "https://st.frame.uz/files/contents/2515/poster/4a16674b-6659-4b11-a0c8-ebc4db9f7aae_Uz.webp"),
-        LdRecord(title = "Farz", alternateTitle = null, language = null, url = "https://frame.uz/cinema/dolg", image = "https://st.frame.uz/files/contents/54827/poster/381e995d-a876-445d-b838-57e89f14cf25_Uz.webp"),
-        LdRecord(title = "Fara Tashkentskiy", alternateTitle = null, language = null, url = "https://frame.uz/cinema/fara-taskentskij", image = "https://st.frame.uz/files/contents/5821/poster/04ee5bf5-e2e0-4c07-b3b0-755df83f225d_Uz.webp")
+        LdRecord(title = "Fara Tashkentskiy", alternateTitle = null, language = null, url = "https://frame.uz/cinema/fara-taskentskij", image = "https://st.frame.uz/files/contents/5821/poster/04ee5bf5-e2e0-4c07-b3b0-755df83f225d_Uz.webp"),
+        LdRecord(title = "Farz", alternateTitle = null, language = null, url = "https://frame.uz/cinema/dolg", image = "https://st.frame.uz/files/contents/54827/poster/381e995d-a876-445d-b838-57e89f14cf25_Uz.webp")
     )
 
     private fun recordToAnime(record: LdRecord): SAnime = SAnime.create().apply {
@@ -205,27 +205,7 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             pageUrl(listingPath, page)
         }
         lastSearchQuery = finalQuery
-        val urlBuilder = Uri.parse(url).buildUpon()
-        for (f in filters) {
-            when (f) {
-                is FrameFilters.QueryPartFilter -> {
-                    val value = f.toQueryPart()
-                    if (value.isNotBlank()) urlBuilder.appendQueryParameter(f.param, value)
-                }
-                is FrameFilters.CheckBoxFilterList -> {
-                    f.state.filter { it.state }.forEach { box ->
-                        f.pairs.firstOrNull { it.first == box.name }?.second?.let { value ->
-                            urlBuilder.appendQueryParameter(f.param, value)
-                        }
-                    }
-                }
-                is FrameFilters.TextFilter -> if (f.state.isNotBlank()) {
-                    urlBuilder.appendQueryParameter(f.param, f.state)
-                }
-                else -> Unit
-            }
-        }
-        val finalUrl = urlBuilder.build().toString()
+        val finalUrl = url
         return GET(finalUrl, headers)
     }
 
