@@ -4,19 +4,19 @@ plugins {
 }
 
 android {
-    namespace = "eu.kanade.tachiyomi.animeextension.es.pluto"
+    namespace = "eu.kanade.tachiyomi.animeextension.es.pluto3"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "eu.kanade.tachiyomi.animeextension.es.pluto"
+        applicationId = "eu.kanade.tachiyomi.animeextension.es.pluto3"
         minSdk = 21
         targetSdk = 34
-        versionCode = 1
-        versionName = "16.1"
+        versionCode = 12
+        versionName = "16.12"
     }
 
     base {
-        archivesName.set("aniyomi-es.pluto-v16.1")
+        archivesName.set("aniyomi-es.pluto3-v16.12")
     }
 
     signingConfigs {

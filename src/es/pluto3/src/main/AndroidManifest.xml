@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Marcador usado por Nekoyomi/Aniyomi para distinguir extensiones de apps normales. -->
+    <uses-feature android:name="tachiyomi.animeextension" />
+
     <application
-        android:label="Pluto"
+        android:label="Pluto3"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="true"
         android:supportsRtl="true">
         <meta-data
+            android:name="tachiyomi.animeextension"
+            android:value="true" />
+        <meta-data
             android:name="tachiyomi.animeextension.class"
-            android:value="eu.kanade.tachiyomi.animeextension.es.pluto.Pluto" />
+            android:value="eu.kanade.tachiyomi.animeextension.es.pluto3.Pluto3" />
         <meta-data
             android:name="tachiyomi.animeextension.hasSettings"
             android:value="true" />
