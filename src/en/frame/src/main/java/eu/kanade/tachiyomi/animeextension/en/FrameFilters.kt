@@ -6,6 +6,12 @@ import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
 object FrameFilters {
     class Header(name: String) : AnimeFilter.Header(name)
 
+    // La lista negra del panel invierte el término: no lo busca, lo excluye.
+    // Se inicializa con el valor del ajuste para que ambos sean un mismo espejo.
+    class BlacklistInputFilter(name: String, initial: String) : AnimeFilter.Text(name) {
+        init { state = initial }
+    }
+
     open class QueryPartFilter(displayName: String, val param: String, val vals: Array<Pair<String, String>>) :
         AnimeFilter.Select<String>(displayName, vals.map { it.first }.toTypedArray()) {
         fun toQueryPart(): String = vals[state].second
@@ -25,8 +31,9 @@ object FrameFilters {
 
     class ExcludeFilter(name: String, val value: String) : AnimeFilter.CheckBox(name, false)
 
-    fun getFilterList(): AnimeFilterList = AnimeFilterList(
+    fun getFilterList(initialBlacklist: String = ""): AnimeFilterList = AnimeFilterList(
         Header("Filtros de búsqueda y catálogo"),
+        BlacklistInputFilter("Lista Negra - excluir (separar con , o ;)", initialBlacklist),
         QueryPartFilter("Estado", "Status", arrayOf(Pair("Todos", ""), Pair("Announcement", "announcement"))),
         QueryPartFilter("Tipo", "Type", arrayOf(Pair("Todos", ""), Pair("Android Tv Source", "android_tv_source"), Pair("Android Source", "android_source"))),
         CheckBoxFilterList("Categoría", "categories", arrayOf(Pair("All", "1"), Pair("Movies", "2"), Pair("Series", "3"), Pair("Cartoons", "4"), Pair("Cartoon series", "5"), Pair("Anime", "6"), Pair("TV show", "7"), Pair("Mini-series", "8"))),

@@ -217,6 +217,9 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             .map { it.value.lowercase() }
             .toHashSet()
         preferences.edit().putStringSet("excluded_api_values", excludedApiValues).apply()
+        val blacklistInput = filters.filterIsInstance<FrameFilters.BlacklistInputFilter>()
+            .firstOrNull()?.state.orEmpty()
+        preferences.edit().putString("genre_blacklist_text", blacklistInput).apply()
         val finalQuery = cleanQuery
 
         val url = if (finalQuery.isNotBlank()) {
@@ -281,8 +284,10 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
 
     private fun filterBlacklistedAnimes(page: AnimesPage): AnimesPage {
         val rawBlacklist = preferences.getString("genre_blacklist_text", "") ?: ""
+        // El input del panel y el ajuste comparten clave: ambos admiten
+        // términos separados por coma, punto y coma o barra vertical.
         val blacklistWords = rawBlacklist
-            .split(",")
+            .split(",", ";", "|")
             .map { it.trim().lowercase() }
             .filter { it.isNotEmpty() }
         // Valores elegidos en el filtro de exclusión: ids/nombres reales de las
@@ -309,7 +314,8 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         return AnimesPage(filtered, page.hasNextPage)
     }
 
-    override fun getFilterList(): AnimeFilterList = FrameFilters.getFilterList()
+    override fun getFilterList(): AnimeFilterList =
+        FrameFilters.getFilterList(preferences.getString("genre_blacklist_text", "") ?: "")
 
     // ============================== DETAILS ==============================
     override fun animeDetailsParse(document: Document): SAnime = SAnime.create().apply {
