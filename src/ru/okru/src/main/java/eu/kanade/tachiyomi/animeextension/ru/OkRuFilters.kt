@@ -36,7 +36,7 @@ object OkRuFilters {
         QueryPartFilter("St.origin", "st.origin", arrayOf(Pair("Todos", ""), Pair("FTRL", "FTRL"))),
         QueryPartFilter("St. A", "st._aid", arrayOf(Pair("Todos", ""), Pair("Fat Footer Help Faq Anonym", "FatFooter_helpFaqAnonym"), Pair("Fat Footer Official Group", "FatFooter_officialGroup"))),
         QueryPartFilter("Cmd", "cmd", arrayOf(Pair("Todos", ""), Pair("Log External", "logExternal"), Pair("Pop Layer", "PopLayer"))),
-        QueryPartFilter("St.sig", "st.sig", arrayOf(Pair("Todos", ""), Pair("Y2w966 K9qshga49Oyk Pi QGEGBMn Wxg X YQI84og70f LBjmql ZVe MD Bzs Wyjq Zap1qq UQIQek Kc5Cy VLg", "Y2w966_K9qshga49OykPiQGEGBMnWxg_xYQI84og70fLBjmqlZVeMD_bzsWyjqZap1qqUQIQekKc5CyVLg"))),
+        QueryPartFilter("St.sig", "st.sig", arrayOf(Pair("Todos", ""), Pair("Y2w966 K9qt3u UCYPFRl4zrl Eg Ry Ampo QH Qb DLraei X8Sh90Bxwglt2IIo Kq4Be3N7q13QSre Ru RE Lg", "Y2w966_K9qt3uUCYPFRl4zrlEgRyAmpoQH-qbDLraeiX8Sh90Bxwglt2IIo-kq4Be3N7q13QSreRuRE-lg"))),
         QueryPartFilter("St.link", "st.link", arrayOf(Pair("Todos", ""), Pair("Http://www.translit.ru", "http://www.translit.ru"))),
         QueryPartFilter("St.name", "st.name", arrayOf(Pair("Todos", ""), Pair("Translit Ru", "translit_ru"))),
         QueryPartFilter("St.layer.cmd", "st.layer.cmd", arrayOf(Pair("Todos", ""), Pair("Pop Layer Choose New Language", "PopLayerChooseNewLanguage"))),

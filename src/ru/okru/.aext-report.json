@@ -1,14 +1,15 @@
 {
   "lang": "ru",
   "pkg_id": "eu.kanade.tachiyomi.animeextension.ru.okru",
-  "version": "16.2",
-  "version_code": 2,
+  "version": "16.3",
+  "version_code": 3,
   "warnings": [
     "No se detectaron tarjetas de catálogo en la portada; los selectores pueden ser incorrectos.",
     "La ruta de listado /gifts/catalog/all se tomó de un enlace del menú, pero no se pudo verificar que sea un catálogo de tarjetas.",
     "No se detectó una ruta de 'recientes'; la pestaña de últimos quedará desactivada.",
     "No se detectó búsqueda ni en formularios ni en datos estructurados: las consultas se filtrarán sobre el catálogo local.",
-    "Filtros encontrados en enlaces/formularios/datos del sitio: st.origin, cmd, st._aid, st.sig, st.name, st.cmd, st.link, st.layer.cmd. Sólo se generarán esos, no géneros inventados.",
-    "No se detectaron calidades reales: el reproductor decidirá automáticamente."
+    "Filtros encontrados en enlaces/formularios/datos del sitio: st.name, st.link, st.cmd, cmd, st.layer.cmd, st._aid, st.origin, st.sig. Sólo se generarán esos, no géneros inventados.",
+    "No se detectaron calidades reales: el reproductor decidirá automáticamente.",
+    "Sin catálogo HTML verificado: AEXT no inventa rutas ni tarjetas. El sitio necesita un motor que devuelva contenido real; la extensión generada no se considera funcional hasta que un motor produzca resultados."
   ]
 }

@@ -11,12 +11,12 @@ android {
         applicationId = "eu.kanade.tachiyomi.animeextension.ru.okru"
         minSdk = 21
         targetSdk = 34
-        versionCode = 2
-        versionName = "16.2"
+        versionCode = 3
+        versionName = "16.3"
     }
 
     base {
-        archivesName.set("aniyomi-ru.okru-v16.2")
+        archivesName.set("aniyomi-ru.okru-v16.3")
     }
 
     signingConfigs {

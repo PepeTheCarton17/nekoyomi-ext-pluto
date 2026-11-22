@@ -1,8 +1,8 @@
 {
   "lang": "es",
   "pkg_id": "eu.kanade.tachiyomi.animeextension.es.pluto3",
-  "version": "16.27",
-  "version_code": 27,
+  "version": "16.28",
+  "version_code": 28,
   "warnings": [
     "No se detectó una ruta de 'recientes'; la pestaña de últimos quedará desactivada.",
     "No se detectó búsqueda ni en formularios ni en datos estructurados: las consultas se filtrarán sobre el catálogo local.",
@@ -13,6 +13,6 @@
     "No se detectó ningún formato de stream (HLS/DASH/MP4/iframe): la reproducción no está verificada.",
     "No se detectaron calidades reales: el reproductor decidirá automáticamente.",
     "Se detectó DRM (Widevine/PlayReady/FairPlay): el reproductor de Nekoyomi no puede descifrarlo. Se priorizarán variantes HLS sin DRM; si no existen, la reproducción fallará.",
-    "Se detectó cifrado/ofuscación de URLs de reproducción (firmas tipo Innertube / n-parameter). AEXT no resuelve esos esquemas: solo usa HLS/MP4/iframe detectados directamente; este sitio puede no reproducir."
+    "Se detectó cifrado/ofuscación de URLs de reproducción (firmas de cliente / n-parameter). AEXT no genera ese esquema por sí solo: hace falta un motor instalable que lo implemente."
   ]
 }
