@@ -191,6 +191,9 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     // ============================== SEARCH ANIME ==============================
     override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList): Request {
         val cleanQuery = query.trim()
+        val blacklistInput = filters.filterIsInstance<Pluto3Filters.BlacklistInputFilter>()
+            .firstOrNull()?.state.orEmpty()
+        preferences.edit().putString("genre_blacklist_text", blacklistInput).apply()
         val finalQuery = cleanQuery
 
         val url = if (finalQuery.isNotBlank()) {
@@ -255,8 +258,10 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
 
     private fun filterBlacklistedAnimes(page: AnimesPage): AnimesPage {
         val rawBlacklist = preferences.getString("genre_blacklist_text", "") ?: ""
+        // El input del panel y el ajuste comparten clave: ambos admiten
+        // términos separados por coma, punto y coma o barra vertical.
         val blacklistWords = rawBlacklist
-            .split(",")
+            .split(",", ";", "|")
             .map { it.trim().lowercase() }
             .filter { it.isNotEmpty() }
         // Valores elegidos en el filtro de exclusión: ids/nombres reales de las
@@ -283,7 +288,8 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         return AnimesPage(filtered, page.hasNextPage)
     }
 
-    override fun getFilterList(): AnimeFilterList = Pluto3Filters.getFilterList()
+    override fun getFilterList(): AnimeFilterList =
+        Pluto3Filters.getFilterList(preferences.getString("genre_blacklist_text", "") ?: "")
 
     // ============================== DETAILS ==============================
     override fun animeDetailsParse(document: Document): SAnime = SAnime.create().apply {

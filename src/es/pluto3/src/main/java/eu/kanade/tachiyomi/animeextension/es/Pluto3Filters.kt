@@ -6,6 +6,12 @@ import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
 object Pluto3Filters {
     class Header(name: String) : AnimeFilter.Header(name)
 
+    // La lista negra del panel invierte el término: no lo busca, lo excluye.
+    // Se inicializa con el valor del ajuste para que ambos sean un mismo espejo.
+    class BlacklistInputFilter(name: String, initial: String) : AnimeFilter.Text(name) {
+        init { state = initial }
+    }
+
     open class QueryPartFilter(displayName: String, val param: String, val vals: Array<Pair<String, String>>) :
         AnimeFilter.Select<String>(displayName, vals.map { it.first }.toTypedArray()) {
         fun toQueryPart(): String = vals[state].second
@@ -23,8 +29,9 @@ object Pluto3Filters {
         fun toPath(): String = vals[state].second
     }
 
-    fun getFilterList(): AnimeFilterList = AnimeFilterList(
+    fun getFilterList(initialBlacklist: String = ""): AnimeFilterList = AnimeFilterList(
         Header("La búsqueda por texto ignora el filtro"),
+        BlacklistInputFilter("Lista Negra - excluir (separar con , o ;)", initialBlacklist),
         PathFilter("Categoría (Latam)", arrayOf(Pair("Todos", ""), Pair("Shows Populares", "/latam/category/0fc98d49-648f-4d89-9c44-95e61107175f/"), Pair("Pelis Imperdibles", "/latam/category/6816a211-706c-4f86-9e3d-851144b7c274/"), Pair("Lo Más Visto", "/latam/category/61096f2f-b3a9-4f1b-aa99-9585e8942106/"))),
         PathFilter("Categoría (Live tv)", arrayOf(Pair("Todos", ""), Pair("Destacado", "/latam/watch/live-tv/category/featured/"), Pair("Películas", "/latam/watch/live-tv/category/peliculas-ve/"), Pair("Series", "/latam/watch/live-tv/category/series-ve/"), Pair("Retro", "/latam/watch/live-tv/category/retro-ve/"), Pair("Novelas", "/latam/watch/live-tv/category/novelas-ve/"), Pair("Reality", "/latam/watch/live-tv/category/reality-ve/"), Pair("Competencia", "/latam/watch/live-tv/category/competencia-ve/"), Pair("Curiosidad", "/latam/watch/live-tv/category/curiosidad-ve/"), Pair("Zona Paranormal", "/latam/watch/live-tv/category/paranormal-ve/"), Pair("Investigación", "/latam/watch/live-tv/category/investigacion-ve/"))),
         PathFilter("Categoría (Movies)", arrayOf(Pair("Todos", ""), Pair("Acción y Aventura", "/latam/movies/category/action-adventure/"), Pair("Comedia", "/latam/movies/category/comedy/"), Pair("Crimen", "/latam/movies/category/crime/"), Pair("Documentales", "/latam/movies/category/documentary/"), Pair("Drama", "/latam/movies/category/drama/"), Pair("Terror", "/latam/movies/category/horror/"), Pair("Niños y Familia", "/latam/movies/category/kids-family/"), Pair("Romance", "/latam/movies/category/romance/"), Pair("Sci-Fi y Fantasía", "/latam/movies/category/sci-fi-fantasy/"))),
