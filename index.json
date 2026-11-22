@@ -1,0 +1,107 @@
+[
+  {
+    "name": "Aniyomi: Frame",
+    "pkg": "eu.kanade.tachiyomi.animeextension.en.frame",
+    "apk": "aniyomi-en.frame-v16.11-release.apk",
+    "lang": "en",
+    "code": 11,
+    "version": "16.11",
+    "nsfw": 0,
+    "hasReadme": 0,
+    "hasChangelog": 0,
+    "sha256": "4ccea9b35b3ccda6f2cd3202f81e6e51d873a30997a94a319f1cba54a8d2260e",
+    "size": 1513771,
+    "sources": [
+      {
+        "name": "Frame",
+        "lang": "en",
+        "id": 1101929003858780552,
+        "baseUrl": "https://frame.uz"
+      }
+    ]
+  },
+  {
+    "name": "Aniyomi: Frame",
+    "pkg": "eu.kanade.tachiyomi.animeextension.es.frame",
+    "apk": "aniyomi-es.frame-v16.12-release.apk",
+    "lang": "es",
+    "code": 12,
+    "version": "16.12",
+    "nsfw": 0,
+    "hasReadme": 0,
+    "hasChangelog": 0,
+    "sha256": "3dafd99e0d1d9fb4257a4c98497a6a836c5f18964a5edd7e8f9a9890c023f8a4",
+    "size": 1505969,
+    "sources": [
+      {
+        "name": "Frame",
+        "lang": "es",
+        "id": 664630931067233404,
+        "baseUrl": "https://frame.uz"
+      }
+    ]
+  },
+  {
+    "name": "Aniyomi: Pluto3",
+    "pkg": "eu.kanade.tachiyomi.animeextension.es.pluto3",
+    "apk": "aniyomi-es.pluto3-v16.28-release.apk",
+    "lang": "es",
+    "code": 28,
+    "version": "16.28",
+    "nsfw": 0,
+    "hasReadme": 0,
+    "hasChangelog": 0,
+    "sha256": "fe2b4e8bf6cbc6769bf9387339398bbd558fc264c8cd423aa9b4c168553b339b",
+    "size": 1497210,
+    "sources": [
+      {
+        "name": "Pluto3",
+        "lang": "es",
+        "id": 401922379298974544,
+        "baseUrl": "https://pluto.tv"
+      }
+    ]
+  },
+  {
+    "name": "Aniyomi: Tube",
+    "pkg": "eu.kanade.tachiyomi.animeextension.es.tube",
+    "apk": "aniyomi-es.tube-v16.7-release.apk",
+    "lang": "es",
+    "code": 7,
+    "version": "16.7",
+    "nsfw": 0,
+    "hasReadme": 0,
+    "hasChangelog": 0,
+    "sha256": "3e9541134ad15a7367d0a385f3160737aaa71766f909680dc1aa501a0133040a",
+    "size": 1498347,
+    "sources": [
+      {
+        "name": "Tube",
+        "lang": "es",
+        "id": 574578780809034125,
+        "baseUrl": "https://www.youtube.com"
+      }
+    ]
+  },
+  {
+    "name": "Aniyomi: Ok Ru",
+    "pkg": "eu.kanade.tachiyomi.animeextension.ru.okru",
+    "apk": "aniyomi-ru.okru-v16.3-release.apk",
+    "lang": "ru",
+    "code": 3,
+    "version": "16.3",
+    "nsfw": 0,
+    "hasReadme": 0,
+    "hasChangelog": 0,
+    "sha256": "cc44c67269269c7bc39329bae3ba1b569c45229c238435c903f3bffaf5903ed5",
+    "size": 1500243,
+    "sources": [
+      {
+        "name": "Ok Ru",
+        "lang": "ru",
+        "id": 282913132688644609,
+        "baseUrl": "https://ok.ru"
+      }
+    ]
+  }
+]

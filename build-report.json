@@ -1,0 +1,210 @@
+{
+  "generated_at": "2026-11-22T07:09:03.417651+00:00",
+  "modules": [
+    {
+      "module": "en/frame",
+      "pkg": "eu.kanade.tachiyomi.animeextension.en.frame",
+      "version": "16.11",
+      "code": 11,
+      "status": "success",
+      "seconds": 106,
+      "warnings": 5,
+      "errors": 0
+    },
+    {
+      "module": "es/frame",
+      "pkg": "eu.kanade.tachiyomi.animeextension.es.frame",
+      "version": "16.12",
+      "code": 12,
+      "status": "success",
+      "seconds": 7,
+      "warnings": 8,
+      "errors": 0
+    },
+    {
+      "module": "es/pluto3",
+      "pkg": "eu.kanade.tachiyomi.animeextension.es.pluto3",
+      "version": "16.28",
+      "code": 28,
+      "status": "success",
+      "seconds": 7,
+      "warnings": 5,
+      "errors": 0
+    },
+    {
+      "module": "es/tube",
+      "pkg": "eu.kanade.tachiyomi.animeextension.es.tube",
+      "version": "16.7",
+      "code": 7,
+      "status": "success",
+      "seconds": 5,
+      "warnings": 5,
+      "errors": 0
+    },
+    {
+      "module": "ru/okru",
+      "pkg": "eu.kanade.tachiyomi.animeextension.ru.okru",
+      "version": "16.3",
+      "code": 3,
+      "status": "success",
+      "seconds": 6,
+      "warnings": 5,
+      "errors": 0
+    }
+  ],
+  "skipped_sources": [
+    {
+      "module": "frame",
+      "detail": "Se usarán los 10 títulos reales del ItemList (JSON-LD) en lugar de 0 elementos HTML de navegación/header/footer."
+    },
+    {
+      "module": "frame",
+      "detail": "La ruta de listado /catalog se tomó de un enlace del menú, pero no se pudo verificar que sea un catálogo de tarjetas."
+    },
+    {
+      "module": "frame",
+      "detail": "No se detectó una ruta de 'recientes'; la pestaña de últimos quedará desactivada."
+    },
+    {
+      "module": "frame",
+      "detail": "La URL de búsqueda se tomó de un SearchAction declarado por el sitio (JSON-LD)."
+    },
+    {
+      "module": "frame",
+      "detail": "El sitio declara varios idiomas (uz, ru, en): el paquete se marcará como 'all' y los textos de la extensión serán ingleses. No se elige un idioma por query param."
+    },
+    {
+      "module": "frame",
+      "detail": "Filtros encontrados en los bundles JS del sitio: Status, Type. Sus etiquetas se muestran en el idioma de la extensión; los valores no enumerados se ofrecen como texto libre."
+    },
+    {
+      "module": "frame",
+      "detail": "Endpoints REST verificados con JSON real: categories (8), countries (239), years (153), genres (17), qualities (4), tv-categories (8), copyright-holders (7), tv-copyright-holders (3), professions (17), genres (17), categories (8), contents (10), new (10), premieres (10), mini-series (2), semantic-search (10). Sus datos se usan para filtros y catálogo; nunca se inventan valores."
+    },
+    {
+      "module": "frame",
+      "detail": "El catálogo declara títulos de suscripción o sin acceso público. AEXT no puede verificar esos streams sin sesión: no genera pistas SUB/DUB ni servidores inventados."
+    },
+    {
+      "module": "frame",
+      "detail": "No se detectaron calidades reales: el reproductor decidirá automáticamente."
+    },
+    {
+      "module": "frame",
+      "detail": "Sin catálogo HTML verificado: AEXT no inventa rutas ni tarjetas. El sitio necesita un motor que devuelva contenido real; la extensión generada no se considera funcional hasta que un motor produzca resultados."
+    },
+    {
+      "module": "pluto3",
+      "detail": "No se detectó una ruta de 'recientes'; la pestaña de últimos quedará desactivada."
+    },
+    {
+      "module": "pluto3",
+      "detail": "No se detectó búsqueda ni en formularios ni en datos estructurados: las consultas se filtrarán sobre el catálogo local."
+    },
+    {
+      "module": "pluto3",
+      "detail": "Categorías declaradas como rutas del sitio: category (/latam/), category (/latam/watch/live-tv/), category (/latam/movies/), category (/latam/shows/). Se ofrecerán como filtros que cambian la URL del catálogo."
+    },
+    {
+      "module": "pluto3",
+      "detail": "El sitio declara varios idiomas (es, en): el paquete se marcará como 'all' y los textos de la extensión serán ingleses. No se elige un idioma por query param."
+    },
+    {
+      "module": "pluto3",
+      "detail": "La URL de entrada redirigió a https://pluto.tv/latam/. Comprueba que sea el catálogo correcto."
+    },
+    {
+      "module": "pluto3",
+      "detail": "La página de detalle de ejemplo tiene 2 enlaces de episodios, pero el HTML no incluye ningún reproductor (.m3u8/iframe): los servidores pueden cargarse por JavaScript y la reproducción no está verificada."
+    },
+    {
+      "module": "pluto3",
+      "detail": "No se detectó ningún formato de stream (HLS/DASH/MP4/iframe): la reproducción no está verificada."
+    },
+    {
+      "module": "pluto3",
+      "detail": "No se detectaron calidades reales: el reproductor decidirá automáticamente."
+    },
+    {
+      "module": "pluto3",
+      "detail": "Se detectó DRM (Widevine/PlayReady/FairPlay): el reproductor de Nekoyomi no puede descifrarlo. Se priorizarán variantes HLS sin DRM; si no existen, la reproducción fallará."
+    },
+    {
+      "module": "pluto3",
+      "detail": "Se detectó cifrado/ofuscación de URLs de reproducción (firmas de cliente / n-parameter). AEXT no genera ese esquema por sí solo: hace falta un motor instalable que lo implemente."
+    },
+    {
+      "module": "tube",
+      "detail": "No se detectaron tarjetas de catálogo en la portada; los selectores pueden ser incorrectos."
+    },
+    {
+      "module": "tube",
+      "detail": "No se detectó una ruta de catálogo/populares: se usará la URL de entrada tal cual."
+    },
+    {
+      "module": "tube",
+      "detail": "No se detectó una ruta de 'recientes'; la pestaña de últimos quedará desactivada."
+    },
+    {
+      "module": "tube",
+      "detail": "No se detectó búsqueda ni en formularios ni en datos estructurados: las consultas se filtrarán sobre el catálogo local."
+    },
+    {
+      "module": "tube",
+      "detail": "Filtros encontrados en enlaces/formularios/datos del sitio: u. Sólo se generarán esos, no géneros inventados."
+    },
+    {
+      "module": "tube",
+      "detail": "Filtros encontrados en los bundles JS del sitio: id, parentId, previousId, nextId, quality, by, slotId, layoutId, triggeringLayoutId, triggeringSlotId, type, types, loading_response_message_id, ai_search_loading_response_message_id, isSlimGrid, isShortsGrid, video_id, format, ad_id, display, gs_id. Sus etiquetas se muestran en el idioma de la extensión; los valores no enumerados se ofrecen como texto libre."
+    },
+    {
+      "module": "tube",
+      "detail": "No se detectaron calidades reales: el reproductor decidirá automáticamente."
+    },
+    {
+      "module": "tube",
+      "detail": "Se detectó DRM (Widevine/PlayReady/FairPlay): el reproductor de Nekoyomi no puede descifrarlo. Se priorizarán variantes HLS sin DRM; si no existen, la reproducción fallará."
+    },
+    {
+      "module": "tube",
+      "detail": "Se detectó cifrado/ofuscación de URLs de reproducción (firmas de cliente / n-parameter). AEXT no genera ese esquema por sí solo: hace falta un motor instalable que lo implemente."
+    },
+    {
+      "module": "tube",
+      "detail": "Sin catálogo HTML verificado: AEXT no inventa rutas ni tarjetas. El sitio necesita un motor que devuelva contenido real; la extensión generada no se considera funcional hasta que un motor produzca resultados."
+    },
+    {
+      "module": "okru",
+      "detail": "No se detectaron tarjetas de catálogo en la portada; los selectores pueden ser incorrectos."
+    },
+    {
+      "module": "okru",
+      "detail": "La ruta de listado /gifts/catalog/all se tomó de un enlace del menú, pero no se pudo verificar que sea un catálogo de tarjetas."
+    },
+    {
+      "module": "okru",
+      "detail": "No se detectó una ruta de 'recientes'; la pestaña de últimos quedará desactivada."
+    },
+    {
+      "module": "okru",
+      "detail": "No se detectó búsqueda ni en formularios ni en datos estructurados: las consultas se filtrarán sobre el catálogo local."
+    },
+    {
+      "module": "okru",
+      "detail": "Filtros encontrados en enlaces/formularios/datos del sitio: st.name, st.link, st.cmd, cmd, st.layer.cmd, st._aid, st.origin, st.sig. Sólo se generarán esos, no géneros inventados."
+    },
+    {
+      "module": "okru",
+      "detail": "No se detectaron calidades reales: el reproductor decidirá automáticamente."
+    },
+    {
+      "module": "okru",
+      "detail": "Sin catálogo HTML verificado: AEXT no inventa rutas ni tarjetas. El sitio necesita un motor que devuelva contenido real; la extensión generada no se considera funcional hasta que un motor produzca resultados."
+    }
+  ],
+  "totals": {
+    "modules": 5,
+    "failed": 0,
+    "seconds": 131
+  }
+}
