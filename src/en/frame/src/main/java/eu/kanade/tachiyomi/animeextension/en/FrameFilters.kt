@@ -18,6 +18,11 @@ object FrameFilters {
 
     class TextFilter(name: String, val param: String) : AnimeFilter.Text(name)
 
+    open class PathFilter(displayName: String, val vals: Array<Pair<String, String>>) :
+        AnimeFilter.Select<String>(displayName, vals.map { it.first }.toTypedArray()) {
+        fun toPath(): String = vals[state].second
+    }
+
     class ExcludeFilter(name: String, val value: String) : AnimeFilter.CheckBox(name, false)
 
     fun getFilterList(): AnimeFilterList = AnimeFilterList(

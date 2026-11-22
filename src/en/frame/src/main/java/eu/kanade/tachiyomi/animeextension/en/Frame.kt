@@ -78,8 +78,8 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         LdRecord(title = "So`nggi zarba", alternateTitle = null, language = null, url = "https://frame.uz/cinema/so-nggi-zarba", image = "https://st.frame.uz/files/contents/56688/poster/d5776654-f7f4-482b-9fef-ecc2a6629a8a_Uz.webp"),
         LdRecord(title = "Yoshlar", alternateTitle = null, language = null, url = "https://frame.uz/cinema/molodezka", image = "https://st.frame.uz/files/contents/23628/poster/36cd7ab3-26e3-4291-af62-9c95c6a46f41_Uz.webp"),
         LdRecord(title = "Fara Tashkentskiy", alternateTitle = null, language = null, url = "https://frame.uz/cinema/fara-taskentskij", image = "https://st.frame.uz/files/contents/5821/poster/04ee5bf5-e2e0-4c07-b3b0-755df83f225d_Uz.webp"),
-        LdRecord(title = "Yigitning so‘zi. Asfaltdagi qon", alternateTitle = null, language = null, url = "https://frame.uz/cinema/slovo-pacana-krov-na-asfalte", image = "https://st.frame.uz/files/contents/2515/poster/4a16674b-6659-4b11-a0c8-ebc4db9f7aae_Uz.webp"),
-        LdRecord(title = "Farz", alternateTitle = null, language = null, url = "https://frame.uz/cinema/dolg", image = "https://st.frame.uz/files/contents/54827/poster/381e995d-a876-445d-b838-57e89f14cf25_Uz.webp")
+        LdRecord(title = "Farz", alternateTitle = null, language = null, url = "https://frame.uz/cinema/dolg", image = "https://st.frame.uz/files/contents/54827/poster/381e995d-a876-445d-b838-57e89f14cf25_Uz.webp"),
+        LdRecord(title = "Yigitning so‘zi. Asfaltdagi qon", alternateTitle = null, language = null, url = "https://frame.uz/cinema/slovo-pacana-krov-na-asfalte", image = "https://st.frame.uz/files/contents/2515/poster/4a16674b-6659-4b11-a0c8-ebc4db9f7aae_Uz.webp")
     )
 
     private fun recordToAnime(record: LdRecord): SAnime = SAnime.create().apply {
@@ -148,8 +148,13 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
         .add("Referer", "$baseUrl/")
 
+    // Un filtro de ruta es navegación de catálogo: popular/latest no reciben
+    // el AnimeFilterList, así que leen la ruta elegida de las preferencias.
+    private fun catalogPath(fallback: String): String =
+        preferences.getString("selected_path_filter", "").orEmpty().ifBlank { fallback }
+
     // ============================== POPULAR ANIME ==============================
-    override fun popularAnimeRequest(page: Int): Request = GET(pageUrl(listingPath, page), headers)
+    override fun popularAnimeRequest(page: Int): Request = GET(pageUrl(catalogPath(listingPath), page), headers)
 
     override fun popularAnimeSelector(): String = "article, div.item, div.card"
 
@@ -191,7 +196,7 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     }
 
     // ============================== LATEST UPDATES ==============================
-    override fun latestUpdatesRequest(page: Int): Request = GET(pageUrl(latestPath, page), headers)
+    override fun latestUpdatesRequest(page: Int): Request = GET(pageUrl(catalogPath(latestPath), page), headers)
 
     override fun latestUpdatesSelector(): String = "article, div.item, div.card"
 
@@ -220,9 +225,24 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             pageUrl(listingPath, page)
         }
         lastSearchQuery = finalQuery
-        val urlBuilder = Uri.parse(url).buildUpon()
+        // Un filtro de ruta sustituye el path del catálogo; los query params
+        // originales (p. ej. la paginación) se conservan sobre la nueva ruta.
+        val pathOverride = filters.filterIsInstance<FrameFilters.PathFilter>()
+            .firstOrNull()?.toPath().orEmpty()
+        preferences.edit().putString("selected_path_filter", pathOverride).apply()
+        val originalUrl = Uri.parse(url)
+        val urlBuilder = if (pathOverride.isNotBlank()) {
+            Uri.parse(baseUrl.trimEnd('/') + pathOverride).buildUpon().apply {
+                originalUrl.queryParameterNames.forEach { name ->
+                    originalUrl.getQueryParameter(name)?.let { appendQueryParameter(name, it) }
+                }
+            }
+        } else {
+            originalUrl.buildUpon()
+        }
         for (f in filters) {
             when (f) {
+                is FrameFilters.PathFilter -> Unit
                 is FrameFilters.QueryPartFilter -> {
                     val value = f.toQueryPart()
                     if (value.isNotBlank()) urlBuilder.appendQueryParameter(f.param, value)
