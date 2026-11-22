@@ -262,7 +262,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     }
 
     // ============================== EPISODES ==============================
-    override fun episodeListSelector(): String = "li.episode, a[href*=/ver/], div.episodios a"
+    override fun episodeListSelector(): String = "a[href*='/episode/']"
 
     override fun episodeFromElement(element: Element): SEpisode = SEpisode.create().apply {
         // La tarjeta puede ser el propio enlace.
