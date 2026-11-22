@@ -1,0 +1,17 @@
+{
+  "lang": "es",
+  "pkg_id": "eu.kanade.tachiyomi.animeextension.es.tube",
+  "version": "16.6",
+  "version_code": 6,
+  "warnings": [
+    "No se detectaron tarjetas de catálogo en la portada; los selectores pueden ser incorrectos.",
+    "No se detectó una ruta de catálogo/populares: se usará la URL de entrada tal cual.",
+    "No se detectó una ruta de 'recientes'; la pestaña de últimos quedará desactivada.",
+    "No se detectó búsqueda ni en formularios ni en datos estructurados: las consultas se filtrarán sobre el catálogo local.",
+    "Filtros encontrados en enlaces/formularios/datos del sitio: u. Sólo se generarán esos, no géneros inventados.",
+    "Filtros encontrados en los bundles JS del sitio: id, parentId, previousId, nextId, quality, by, slotId, layoutId, triggeringLayoutId, triggeringSlotId, type, types, loading_response_message_id, ai_search_loading_response_message_id, isSlimGrid, isShortsGrid, video_id, format, ad_id, display, gs_id. Sus etiquetas se muestran en el idioma de la extensión; los valores no enumerados se ofrecen como texto libre.",
+    "No se detectaron calidades reales: el reproductor decidirá automáticamente.",
+    "Se detectó DRM (Widevine/PlayReady/FairPlay): el reproductor de Nekoyomi no puede descifrarlo. Se priorizarán variantes HLS sin DRM; si no existen, la reproducción fallará.",
+    "Se detectó cifrado/ofuscación de URLs de reproducción (firmas tipo Innertube / n-parameter). AEXT no resuelve esos esquemas: solo usa HLS/MP4/iframe detectados directamente; este sitio puede no reproducir."
+  ]
+}

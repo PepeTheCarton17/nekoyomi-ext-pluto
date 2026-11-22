@@ -1,0 +1,18 @@
+{
+  "lang": "es",
+  "pkg_id": "eu.kanade.tachiyomi.animeextension.es.pluto3",
+  "version": "16.27",
+  "version_code": 27,
+  "warnings": [
+    "No se detectó una ruta de 'recientes'; la pestaña de últimos quedará desactivada.",
+    "No se detectó búsqueda ni en formularios ni en datos estructurados: las consultas se filtrarán sobre el catálogo local.",
+    "Categorías declaradas como rutas del sitio: category (/latam/), category (/latam/watch/live-tv/), category (/latam/movies/), category (/latam/shows/). Se ofrecerán como filtros que cambian la URL del catálogo.",
+    "El sitio declara varios idiomas (es, en): el paquete se marcará como 'all' y los textos de la extensión serán ingleses. No se elige un idioma por query param.",
+    "La URL de entrada redirigió a https://pluto.tv/latam/. Comprueba que sea el catálogo correcto.",
+    "La página de detalle de ejemplo tiene 2 enlaces de episodios, pero el HTML no incluye ningún reproductor (.m3u8/iframe): los servidores pueden cargarse por JavaScript y la reproducción no está verificada.",
+    "No se detectó ningún formato de stream (HLS/DASH/MP4/iframe): la reproducción no está verificada.",
+    "No se detectaron calidades reales: el reproductor decidirá automáticamente.",
+    "Se detectó DRM (Widevine/PlayReady/FairPlay): el reproductor de Nekoyomi no puede descifrarlo. Se priorizarán variantes HLS sin DRM; si no existen, la reproducción fallará.",
+    "Se detectó cifrado/ofuscación de URLs de reproducción (firmas tipo Innertube / n-parameter). AEXT no resuelve esos esquemas: solo usa HLS/MP4/iframe detectados directamente; este sitio puede no reproducir."
+  ]
+}
