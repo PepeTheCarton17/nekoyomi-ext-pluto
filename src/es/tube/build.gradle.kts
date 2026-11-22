@@ -11,12 +11,12 @@ android {
         applicationId = "eu.kanade.tachiyomi.animeextension.es.tube"
         minSdk = 21
         targetSdk = 34
-        versionCode = 3
-        versionName = "16.3"
+        versionCode = 4
+        versionName = "16.4"
     }
 
     base {
-        archivesName.set("aniyomi-es.tube-v16.3")
+        archivesName.set("aniyomi-es.tube-v16.4")
     }
 
     signingConfigs {
