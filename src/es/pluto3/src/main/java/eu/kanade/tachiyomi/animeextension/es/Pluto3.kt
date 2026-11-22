@@ -127,8 +127,13 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
         .add("Referer", "$baseUrl/")
 
+    // Un filtro de ruta es navegación de catálogo: popular/latest no reciben
+    // el AnimeFilterList, así que leen la ruta elegida de las preferencias.
+    private fun catalogPath(fallback: String): String =
+        preferences.getString("selected_path_filter", "").orEmpty().ifBlank { fallback }
+
     // ============================== POPULAR ANIME ==============================
-    override fun popularAnimeRequest(page: Int): Request = GET(pageUrl(listingPath, page), headers)
+    override fun popularAnimeRequest(page: Int): Request = GET(pageUrl(catalogPath(listingPath), page), headers)
 
     override fun popularAnimeSelector(): String = "a.TileLink_tileLink__pIMWG"
 
@@ -170,7 +175,7 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     }
 
     // ============================== LATEST UPDATES ==============================
-    override fun latestUpdatesRequest(page: Int): Request = GET(pageUrl(latestPath, page), headers)
+    override fun latestUpdatesRequest(page: Int): Request = GET(pageUrl(catalogPath(latestPath), page), headers)
 
     override fun latestUpdatesSelector(): String = "a.TileLink_tileLink__pIMWG"
 
@@ -194,7 +199,42 @@ class Pluto3 : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             pageUrl(listingPath, page)
         }
         lastSearchQuery = finalQuery
-        val finalUrl = url
+        // Un filtro de ruta sustituye el path del catálogo; los query params
+        // originales (p. ej. la paginación) se conservan sobre la nueva ruta.
+        val pathOverride = filters.filterIsInstance<Pluto3Filters.PathFilter>()
+            .firstOrNull()?.toPath().orEmpty()
+        preferences.edit().putString("selected_path_filter", pathOverride).apply()
+        val originalUrl = Uri.parse(url)
+        val urlBuilder = if (pathOverride.isNotBlank()) {
+            Uri.parse(baseUrl.trimEnd('/') + pathOverride).buildUpon().apply {
+                originalUrl.queryParameterNames.forEach { name ->
+                    originalUrl.getQueryParameter(name)?.let { appendQueryParameter(name, it) }
+                }
+            }
+        } else {
+            originalUrl.buildUpon()
+        }
+        for (f in filters) {
+            when (f) {
+                is Pluto3Filters.PathFilter -> Unit
+                is Pluto3Filters.QueryPartFilter -> {
+                    val value = f.toQueryPart()
+                    if (value.isNotBlank()) urlBuilder.appendQueryParameter(f.param, value)
+                }
+                is Pluto3Filters.CheckBoxFilterList -> {
+                    f.state.filter { it.state }.forEach { box ->
+                        f.pairs.firstOrNull { it.first == box.name }?.second?.let { value ->
+                            urlBuilder.appendQueryParameter(f.param, value)
+                        }
+                    }
+                }
+                is Pluto3Filters.TextFilter -> if (f.state.isNotBlank()) {
+                    urlBuilder.appendQueryParameter(f.param, f.state)
+                }
+                else -> Unit
+            }
+        }
+        val finalUrl = urlBuilder.build().toString()
         return GET(finalUrl, headers)
     }
 
