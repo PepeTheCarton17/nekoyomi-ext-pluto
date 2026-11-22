@@ -11,12 +11,12 @@ android {
         applicationId = "eu.kanade.tachiyomi.animeextension.en.frame"
         minSdk = 21
         targetSdk = 34
-        versionCode = 7
-        versionName = "16.7"
+        versionCode = 8
+        versionName = "16.8"
     }
 
     base {
-        archivesName.set("aniyomi-en.frame-v16.7")
+        archivesName.set("aniyomi-en.frame-v16.8")
     }
 
     signingConfigs {
