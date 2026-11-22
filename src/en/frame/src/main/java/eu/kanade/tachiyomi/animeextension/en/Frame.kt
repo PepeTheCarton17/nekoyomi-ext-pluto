@@ -60,6 +60,16 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     )
 
     private val jsonLdRecords = listOf(
+        LdRecord(title = "Newcomers", alternateTitle = null, language = null, url = "https://frame.uz/cinema/ponaekhavshie", image = "https://st.frame.uz/files/contents/57533/poster/f3165bd4-d7e2-4c1e-9a83-cbc1c0b2a51a_En.webp", genre = "Series"),
+        LdRecord(title = "Heavy luxry", alternateTitle = null, language = null, url = "https://frame.uz/cinema/tyazhyolyy-lyuks", image = "https://st.frame.uz/files/contents/57504/poster/4366779f-853d-43dd-9f70-71a80da27da6_En.webp", genre = "Series"),
+        LdRecord(title = "AInga", alternateTitle = null, language = null, url = "https://frame.uz/cinema/iinga", image = "https://st.frame.uz/files/contents/57340/poster/cc0d5ec6-fe62-4ab2-9494-4e9f1c03e7ed_En.webp", genre = "Series"),
+        LdRecord(title = "Underground  stand-up comedy", alternateTitle = null, language = null, url = "https://frame.uz/cinema/stendap-andegraund", image = "https://st.frame.uz/files/contents/57086/poster/bb45be08-a003-49f0-a730-67354dbc7267_En.webp", genre = "TV show"),
+        LdRecord(title = "Co-authors", alternateTitle = null, language = null, url = "https://frame.uz/cinema/soavtory", image = "https://st.frame.uz/files/contents/56995/poster/9d2eef09-c54b-45c4-9567-1237142119ac_En.webp", genre = "Movies"),
+        LdRecord(title = "At the wheel of destiny", alternateTitle = null, language = null, url = "https://frame.uz/cinema/za-rulem-sudby", image = "https://st.frame.uz/files/contents/56971/poster/0494b1a9-02ac-4c1f-84d7-72d2b0682869_En.webp", genre = "Series"),
+        LdRecord(title = "Ilya Murovets", alternateTitle = null, language = null, url = "https://frame.uz/cinema/ilya-murovets", image = "https://st.frame.uz/files/contents/56944/poster/90a2be5e-51ba-478b-95ea-8a247c823fde_En.webp", genre = "Series"),
+        LdRecord(title = "Qora quzg'un", alternateTitle = null, language = null, url = "https://frame.uz/cinema/qora-quzg-un", image = "https://st.frame.uz/files/contents/56977/poster/915132f0-022d-430e-a664-04a475cdc2d1_En.webp", genre = "Movies"),
+        LdRecord(title = "Betayin", alternateTitle = null, language = null, url = "https://frame.uz/cinema/betayin", image = "https://st.frame.uz/files/contents/56976/poster/422d796e-65fa-45ea-9ea7-eadd1f301520_En.webp", genre = "Movies"),
+        LdRecord(title = "Red Queen", alternateTitle = null, language = null, url = "https://frame.uz/cinema/krasnaya-koroleva", image = "https://st.frame.uz/files/contents/56921/poster/17dcd446-191f-4234-8cc4-6484152b88fd_En.webp", genre = "Series"),
         LdRecord(title = "Imperator rafiqasi Ki", alternateTitle = null, language = null, url = "https://frame.uz/cinema/imperatrica-ki", image = "https://st.frame.uz/files/contents/7291/poster/e6d4c866-5a89-4fab-82d1-b562b3ffbfcc_Uz.webp"),
         LdRecord(title = "1+1 qo'shilish kuchi", alternateTitle = null, language = null, url = "https://frame.uz/cinema/intouchables", image = "https://st.frame.uz/files/contents/298/poster/b8c331bf-1141-4344-97da-9343eaf2fe9b_Uz.webp"),
         LdRecord(title = "Ogi‘r lyuks", alternateTitle = null, language = null, url = "https://frame.uz/cinema/tyazhyolyy-lyuks", image = "https://st.frame.uz/files/contents/57504/poster/8a622de6-1f14-4eae-a96b-ee0209bf7d9b_Uz.webp"),
@@ -67,8 +77,8 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
         LdRecord(title = "Hammasiga Istanbul aybdor", alternateTitle = null, language = null, url = "https://frame.uz/cinema/vo-vsem-vinovat-stambul", image = "https://st.frame.uz/files/contents/45462/poster/3dc5649e-34fc-41d1-a2c9-68874b3d04fb_Uz.webp"),
         LdRecord(title = "So`nggi zarba", alternateTitle = null, language = null, url = "https://frame.uz/cinema/so-nggi-zarba", image = "https://st.frame.uz/files/contents/56688/poster/d5776654-f7f4-482b-9fef-ecc2a6629a8a_Uz.webp"),
         LdRecord(title = "Yoshlar", alternateTitle = null, language = null, url = "https://frame.uz/cinema/molodezka", image = "https://st.frame.uz/files/contents/23628/poster/36cd7ab3-26e3-4291-af62-9c95c6a46f41_Uz.webp"),
-        LdRecord(title = "Yigitning so‘zi. Asfaltdagi qon", alternateTitle = null, language = null, url = "https://frame.uz/cinema/slovo-pacana-krov-na-asfalte", image = "https://st.frame.uz/files/contents/2515/poster/4a16674b-6659-4b11-a0c8-ebc4db9f7aae_Uz.webp"),
         LdRecord(title = "Fara Tashkentskiy", alternateTitle = null, language = null, url = "https://frame.uz/cinema/fara-taskentskij", image = "https://st.frame.uz/files/contents/5821/poster/04ee5bf5-e2e0-4c07-b3b0-755df83f225d_Uz.webp"),
+        LdRecord(title = "Yigitning so‘zi. Asfaltdagi qon", alternateTitle = null, language = null, url = "https://frame.uz/cinema/slovo-pacana-krov-na-asfalte", image = "https://st.frame.uz/files/contents/2515/poster/4a16674b-6659-4b11-a0c8-ebc4db9f7aae_Uz.webp"),
         LdRecord(title = "Farz", alternateTitle = null, language = null, url = "https://frame.uz/cinema/dolg", image = "https://st.frame.uz/files/contents/54827/poster/381e995d-a876-445d-b838-57e89f14cf25_Uz.webp")
     )
 
@@ -197,6 +207,11 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
     // ============================== SEARCH ANIME ==============================
     override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList): Request {
         val cleanQuery = query.trim()
+        val excludedApiValues = filters.filterIsInstance<FrameFilters.ExcludeFilter>()
+            .filter { it.state }
+            .map { it.value.lowercase() }
+            .toHashSet()
+        preferences.edit().putStringSet("excluded_api_values", excludedApiValues).apply()
         val finalQuery = cleanQuery
 
         val url = if (finalQuery.isNotBlank()) {
@@ -205,7 +220,27 @@ class Frame : ParsedAnimeHttpSource(), ConfigurableAnimeSource {
             pageUrl(listingPath, page)
         }
         lastSearchQuery = finalQuery
-        val finalUrl = url
+        val urlBuilder = Uri.parse(url).buildUpon()
+        for (f in filters) {
+            when (f) {
+                is FrameFilters.QueryPartFilter -> {
+                    val value = f.toQueryPart()
+                    if (value.isNotBlank()) urlBuilder.appendQueryParameter(f.param, value)
+                }
+                is FrameFilters.CheckBoxFilterList -> {
+                    f.state.filter { it.state }.forEach { box ->
+                        f.pairs.firstOrNull { it.first == box.name }?.second?.let { value ->
+                            urlBuilder.appendQueryParameter(f.param, value)
+                        }
+                    }
+                }
+                is FrameFilters.TextFilter -> if (f.state.isNotBlank()) {
+                    urlBuilder.appendQueryParameter(f.param, f.state)
+                }
+                else -> Unit
+            }
+        }
+        val finalUrl = urlBuilder.build().toString()
         return GET(finalUrl, headers)
     }
 
